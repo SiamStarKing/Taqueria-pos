@@ -2,23 +2,19 @@
 import { productosRef, ventasRef, onSnapshot, addDoc } from './db.js';
 // Variables del carrito
 let carrito = [];
-let productosLocales = []; // Aquí guardaremos la copia para filtrar
 
 // 2. ESCUCHAR PRODUCTOS EN TIEMPO REAL
 // Esto reemplaza a Dexie. Cuando cambies un precio en Admin, aquí cambia solo.
-// ESCUCHAR LA NUBE
 onSnapshot(productosRef, (snapshot) => {
-    // Guardamos los datos en nuestra variable local
-    productosLocales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    // Por defecto mostramos todos al cargar
-    renderizarMenu(productosLocales);
+    const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderizarMenu(productos);
 });
 
-function renderizarMenu(listaAMostrar) {
-    const contenedor = document.getElementById('menu-grid');
+function renderizarMenu(productos) {
+    const contenedor = document.getElementById('menu');
     if (!contenedor) return;
 
-    contenedor.innerHTML = listaAMostrar.map(p => {
+    contenedor.innerHTML = productos.map(p => {
         const esImagen = p.imagen.includes('/') || p.imagen.includes('.');
         const visual = esImagen 
             ? `<img src="${p.imagen}" class="card-img">` 
@@ -36,6 +32,7 @@ function renderizarMenu(listaAMostrar) {
     }).join('');
 }
 
+
 // --- NUEVAS FUNCIONES DE FILTRADO ---
 
 window.filtrarMenu = function(categoria, boton) {
@@ -45,16 +42,16 @@ window.filtrarMenu = function(categoria, boton) {
 
     // 2. Filtrar la lista
     if (categoria === 'Todos') {
-        renderizarMenu(productosLocales);
+        renderizarMenu(productos);
     } else {
-        const filtrados = productosLocales.filter(p => p.categoria === categoria);
+        const filtrados = productos.filter(p => p.categoria === categoria);
         renderizarMenu(filtrados);
     }
 }
 
 window.buscarProducto = function() {
     const termino = document.getElementById('buscador').value.toLowerCase();
-    const filtrados = productosLocales.filter(p => 
+    const filtrados = productos.filter(p => 
         p.nombre.toLowerCase().includes(termino)
     );
     renderizarMenu(filtrados);
