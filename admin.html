@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Taquería</title>
+    <link rel="icon" href="img/taco.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="admin-layout">
+        <header class="admin-header">
+            <a href="index.html" class="btn-regresar">← Volver a Ventas</a>
+            <h1>Gestión de Menú</h1>
+        </header>
+
+        <main class="admin-main">
+            <section class="admin-card form-section">
+                <h2>Agregar Nuevo Producto</h2>
+                <form id="form-producto" onsubmit="guardarProducto(event)" class="grid-form">
+                    <div class="field">
+                        <label>Nombre del Producto</label>
+                        <input type="text" id="nombre" placeholder="Ej. Taco de Bistec" required>
+                    </div>
+                    <div class="field">
+                        <label>Precio ($)</label>
+                        <input type="number" id="precio" step="0.5" placeholder="Ej. 25.00" required>
+                    </div>
+                    <div class="field">
+                        <label>Categoría</label>
+                        <select id="categoria" required>
+                            <option value="Alimento">Alimento</option>
+                            <option value="Bebida">Bebida</option>
+                            <option value="Extra">Extra</option>
+                            <option value="Postre">Postre</option>
+                            <option value="Dulce">Dulce</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Imagen (URL o Emoji)</label>
+                        <input type="text" id="imagen" placeholder="Ej. 🌮 o url de imagen">
+                    </div>
+                    <button type="submit" class="btn-guardar">Guardar Producto</button>
+                </form>
+            </section>
+
+            <section class="admin-card list-section">
+                <h2>Productos en el Menú</h2>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-tabla"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="admin-card stats-section">
+                <h2>Resumen de Ventas</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Vendido</span>
+                        <span class="stat-value" id="total-dinero">$0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Producto Estrella</span>
+                        <span class="stat-value" id="producto-estrella">-</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Ventas Realizadas</span>
+                        <span class="stat-value" id="cantidad-ventas">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="admin-card">
+                <h2>Corte de Caja</h2>
+                <div class="acciones-corte">
+                    <button class="btn-descargar" onclick="exportarExcel()">Descargar Reporte Excel</button>
+                    <button class="btn-limpiar-ventas" onclick="borrarHistorial()">Borrar Historial de Ventas</button>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha/Horas</th>
+                                <th>Productos</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-ventas"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="admin-card qr-section">
+                <h2>Menú Digital (Qr)</h2>
+                <p>Muestra este código a tus clientes para que vean el menú en su celular.</p>
+                <div id="qrcode" style="display: flex; justify-content: center; margin: 20px 0;"></div>
+                <button class="btn-guardar" onclick="imprimirQR()">Imprimir Código QR</button>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/dexie.min.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log('Service Worker registrado con éxito.'))
+            .catch((err) => console.log('Error al registrar Service Worker:', err));
+        }
+    </script>
+</body>
+</html>

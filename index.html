@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaz de Cobro</title>
+    <link rel="icon" href="img/taco.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="app-container">
+        <section class="menu-section">
+            <header class="menu-header">
+                <h1>Taquiería</h1>
+                <div class="search-container">
+                    <input type="text" id="buscador" placeholder="🔍 Buscar producto..." onkeyup="buscarProducto()">
+                </div>
+                <a href="admin.html" class="btn-admin">⚙️</a>
+            </header>
+
+            <nav class="categorias-bar">
+                <button class="active" onclick="filtrarMenu('Todos', this)">Todos</button>
+                <button onclick="filtrarMenu('Alimento', this)">🌮 Alimentos</button>
+                <button onclick="filtrarMenu('Bebida', this)">🥤 Bebidas</button>
+                <button onclick="filtrarMenu('Extra', this)">➕ Extras</button>
+                <button onclick="filtrarMenu('Postre', this)">🍰 Postres</button>
+                <button onclick="filtrarMenu('Dulce', this)">🍬 Dulces</button>
+            </nav>
+
+            <div class="menu-grid" id="menu"></div>
+        </section>
+
+        <aside class="ticket-section">
+            <h2>Orden Actual</h2>
+            <div class="ticket-items" id="lista-orden"></div>
+            <div class="ticket-footer">
+                <div class="total-container">
+                    <span>TOTAL:</span>
+                    <span id="gran-total">$0.00</span>
+                </div>
+                <div class="acciones-orden">
+                    <button class="btn-cancelar" onclick="limpiarCarrito()">Cancelar</button>
+                    <button class="btn-cobrar" onclick="finalizarVenta()">COBRAR</button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="js/dexie.min.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/caja.js"></script> 
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(() => console.log('Service Worker registrado con éxito.'))
+            .catch((err) => console.log('Error al registrar Service Worker:', err));
+        }
+    </script>
+</body>
+</html>

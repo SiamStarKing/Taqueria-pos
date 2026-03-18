@@ -1,0 +1,253 @@
+:root {
+    --rojo: #e63946;
+    --azul: #1d3557;
+    --verde: #2a9d8f;
+    --fondo: #f8f9fa;
+    --texto: #333;
+    --gris: #6b6b6b;
+}
+
+/* HEADER */
+.admin-layout {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: sans-serif;
+}
+
+.admin-header {
+    display: flex;
+    align-items: center; /* Centra verticalmente el botón con el texto */
+    justify-content: flex-start; /* Alinea todo a la izquierda */
+    gap: 20px; /* Espacio constante entre botón y título */
+    margin-bottom: 30px;
+    padding: 10px 0;
+    width: 100%;
+}
+
+.admin-header h1 {
+    margin: 0;
+    font-size: 2rem; /* Tamaño de fuente más prominente */
+    color: var(--azul);
+    white-space: nowrap; /* Evita que el título se parta en dos líneas si no quieres */
+}
+
+/* BOTÓN REGRESAR */
+.btn-regresar {
+    text-decoration: none;
+    background: var(--azul);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    flex-shrink: 0; /* IMPRESCINDIBLE: evita que el botón se deforme */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.btn-regresar:hover {
+    background: #2c4a75; /* Un tono un poco más claro del azul original */
+}
+
+/* TARJETAS */
+.admin-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 25px;
+}
+
+/* DESPLEGAR EL GRID DE PRODUCTOS*/
+.grid-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* DISÑO DE CAMPOS */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.field input {
+    cursor: pointer;
+    background-color: #ffffff;
+    border: 2px solid #eee;
+    padding: 12px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.field input:focus {
+    border-color: var(--verde); /* El verde que usas */
+    outline: none;
+    box-shadow: 0 0 10px rgba(42, 157, 143, 0.15);
+}
+
+/* BOTÓN DE GUARDAR */
+.btn-guardar{
+    background: var(--verde);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-descargar{
+    background: var(--azul);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-limpiar-ventas{
+    background: var(--rojo);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* TABLAS */
+.table-container {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+/* BOTÓNES EDITAR/ELIMINAR PRODUCTOS */
+.btn-editar {
+    background: var(--azul); /* Color naranja/tierra */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.btn-eliminar {
+    background: #e63946;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* STATS DE LA TABLA */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #f1faee;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    border-left: 5px solid var(--verde);
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--gris);
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--azul);
+}
+
+.qr-section {
+    text-align: center;
+}
+
+.qr-section p {
+    color: var(--gris);
+    font-size: 0.9rem;
+}
+
+/* Esto afecta al cuadro antes de abrirlo */
+#categoria {
+    cursor: pointer;
+    background-color: #ffffff;
+    border: 2px solid #eee;
+    padding: 12px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+/* Esto intenta dar estilo a la lista que se despliega */
+/* Nota: En algunos navegadores solo cambiará el color del texto y fondo */
+#categoria option {
+    padding: 15px; /* Algunos navegadores lo ignoran */
+    background-color: #ffffff;
+    color: #1d3557;
+    font-size: 16px;
+}
+
+/* Estilo cuando el usuario tiene el select abierto o enfocado */
+#categoria:focus {
+    border-color: var(--verde); /* El verde que usas */
+    outline: none;
+    box-shadow: 0 0 10px rgba(42, 157, 143, 0.15);
+}
+
+@media print {
+    /* Al imprimir, solo queremos que salga el QR y no todo el panel de admin */
+    body * {visibility: hidden;}
+    .qr-section, .qr-section * {visibility: visible;}
+    .qr-section {position: absolute; left: 0; top:0; width: 100%;}
+    .btn-guardar {display: none;}
+}
+
+@media (max-width: 600px) {
+    .grid-form{
+        grid-template-columns: 1fr;
+    }
+
+    .admin-header {
+        flex-direction: column; /* Pone el botón arriba y el título abajo */
+        align-items: flex-start; /* Alinea ambos a la izquierda */
+        gap: 20px;
+    }
+    
+    .admin-header h1 {
+        font-size: 1.5rem; /* Reduce un poco el título en celular */
+    }
+
+    .btn-regresar {
+        width: auto; /* El botón solo ocupa lo que necesita su texto */
+    }
+}

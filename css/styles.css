@@ -1,0 +1,381 @@
+:root {
+    --rojo: #e63946;
+    --azul: #1d3557;
+    --verde: #2a9d8f;
+    --fondo: #f8f9fa;
+    --texto: #333;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--fondo);
+}
+
+/* DISPLAY DEL MENU y TICKET*/
+.app-container {
+    display: grid;
+    grid-template-columns: 1fr 380px; /* Menú ancho y Ticket fijo */
+    height: 100vh;
+}
+
+/* MENU */
+.menu-section {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.menu-header {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    justify-content: space-between; /* Mantiene título a la izquierda y engrane a la derecha */
+    margin-bottom: 20px;
+    padding: 10px 0;
+}
+
+.menu-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    flex-shrink: 0; /* Evita que el título se aplaste */
+}
+
+/* DISPLAY DE TARJETAS */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 15px;
+}
+
+/* TARJETAS DE PRODUCTO */
+.card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    text-align: center;
+    border: 3px solid transparent;
+    transition: 0.1s;
+}
+
+.card:active {
+    transform: scale(0.95);
+    border-color: var(--rojo);
+}
+
+.card img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    background: #eee;
+}
+
+.card .info {
+    padding: 10px;
+}
+
+.card .nombre {
+    display: block;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.card .precio {
+    color: var(--verde);
+    font-weight: bold;
+}
+
+/* SECCIÓN TICKET */
+.ticket-section {
+    background: white;
+    border-left: 2px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+/* ITEMS TICKET */
+
+.ticket-section {
+    background: white;
+    border-left: 2px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.ticket-items {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.item-carrito {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.item-info {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.item-controles {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Alinea los botones a la derecha */
+    gap: 15px;
+}
+
+.item-carrito button {
+    background: var(--azul);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-menos { background: var(--rojo) !important; }
+
+.item-cantidad {
+    font-weight: bold;
+    min-width: 30px;
+    text-align: center;
+}
+
+/* FOOTER DEL TICKET */
+.total-container {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: var(--azul);
+}
+
+.acciones-orden {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.btn-cobrar {
+    background: var(--verde);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancelar {
+    background: var(--rojo);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* ESTILO DEL EMOJI */
+.emoji-display {
+    width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px; /* Tamaño del emoji */
+    background-color: #eee;
+}
+
+.card img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+
+.categorias-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto; /* Permite deslizar si hay muchas categorías */
+    padding-bottom: 10px;
+}
+
+.categorias-bar button {
+    background: white;
+    border: 2px solid var(--azul);
+    color: var(--azul);
+    padding: 10px 20px;
+    border-radius: 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.categorias-bar button:hover, .categorias-bar button:active {
+    background: var(--azul);
+    color: white;
+}
+
+/* ESTILO CATEGORIAS */
+.categorias-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-x: auto; /* Permite deslizar si hay muchas categorías */
+    padding-bottom: 10px;
+}
+
+.categorias-bar button {
+    background: white;
+    border: 2px solid var(--azul);
+    color: var(--azul);
+    padding: 10px 20px;
+    border-radius: 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+    margin-top: 5px;
+}
+
+.categorias-bar button:hover,
+.categorias-bar button:active {
+    background: var(--azul);
+    color: white;
+}
+
+/* BOTÓN RESALTADO */
+.categorias-bar button.active {
+    background: var(--rojo);
+    color: white;
+    border-color: var(--rojo);
+    box-shadow: 0 4px 8px rgba(0, 0, 0 ,0.2);
+    transform: translateY(-2px);
+}
+
+/* BARRA DE BUSQUEDA */
+#buscador {
+    width: 100%;
+    padding: 10px 20px;
+    border-radius: 25px;
+    border: 2px solid #ddd;
+    outline: none;
+}
+
+#buscador:focus {
+    border-color: var(--azul);
+    box-shadow: 0 0 8px rgba(29, 53, 87 ,0.2);
+}
+
+.search-container {
+    flex-grow: 1; /* El buscador ocupa el espacio sobrante */
+    max-width: 600px; /* Evita que crezca demasiado en pantallas gigantes */
+    display: flex;
+    justify-content: center;
+}
+
+/* BOTÓN DE ADMINISTRACIÓN */
+.btn-admin {
+    text-decoration: none;
+  
+    background: #e9ecef; /* Color gris claro neutro */
+    color: var(--azul);  /* El icono será del azul de tu marca */
+    border-radius: 50%; /* Menos redondo, más tipo 'app' */
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.btn-admin:hover {
+    background: var(--azul); /* Se pinta de azul al pasar el mouse */
+    color: white;            /* El engrane se vuelve blanco */
+    transform: rotate(90deg); /* ¡Gira suavemente al hacer hover! */
+    box-shadow: 0 4px 12px rgba(29, 53, 87, 0.2);
+}
+
+.btn-admin:active {
+    transform: scale(0.9) rotate(90deg); /* Efecto de pulsación */
+}
+/* MODO RESPOSIVO */
+@media (max-width: 480px) {
+    .menu-header {
+        flex-wrap: wrap; /* Permite que el buscador baje a una segunda línea si no hay espacio */
+    }
+    .search-container {
+        order: 3; /* Manda el buscador abajo del título y el engrane */
+        min-width: 100%;
+        margin: 10px 0 0 0;
+    }
+
+    .btn-admin {
+        align-self: flex-end; /* Mueve el engrane a la derecha */
+    }
+
+    .app-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 350px; /* Reducimos de 300px a 250px */
+    }
+
+    .total-container {
+        display: flex;
+        justify-content: space-between;
+        font-weight: bold;
+        padding-top: 10px;
+        border-top: 2px dashed #ddd; /* Separación visual clara */
+        color: var(--azul);
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    /* BOTONES: Más compactos */
+    .btn-cobrar, .btn-cancelar {
+        padding: 10px; /* Antes era 15px */
+        font-size: 1rem; /* Antes era 1.2rem */
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    /* Items individuales más compactos */
+    .item-carrito {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0; /* Menos espacio vertical */
+        border-bottom: 1px solid #eee;
+        font-size: 0.95rem; /* Letra ligeramente más pequeña */
+    }
+
+    .ticket-items {
+        flex-grow: 1;
+        overflow-y: auto;
+        margin-bottom: 10px; /* Reducimos margen */
+        padding-right: 5px; /* Espacio para el scroll */
+    }
+}

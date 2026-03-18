@@ -1,0 +1,21 @@
+{
+    "name": "Taquería POS",
+    "short_name": "TacosApp",
+    "description": "Sistema de ventas para la Taquería",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#f8f9fa",
+    "theme_color": "#1d3557",
+    "icons": [
+        {
+            "src": "img/taco.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "img/taco.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ] 
+}
