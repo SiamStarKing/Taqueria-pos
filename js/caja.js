@@ -11,7 +11,7 @@ onSnapshot(productosRef, (snapshot) => {
 });
 
 function renderizarMenu(productos) {
-    const contenedor = document.getElementById('menu-grid');
+    const contenedor = document.getElementById('menu');
     if (!contenedor) return;
 
     contenedor.innerHTML = productos.map(p => {
@@ -44,7 +44,7 @@ window.agregarAlCarrito = function(id, nombre, precio) {
 }
 
 function actualizarVistaCarrito() {
-    const lista = document.getElementById('lista-carrito');
+    const lista = document.getElementById('lista-orden');
     const totalElemento = document.getElementById('total-pagar');
     let total = 0;
 
