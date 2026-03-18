@@ -298,7 +298,6 @@ body, html {
 /* BOTÓN DE ADMINISTRACIÓN */
 .btn-admin {
     text-decoration: none;
-  
     background: #e9ecef; /* Color gris claro neutro */
     color: var(--azul);  /* El icono será del azul de tu marca */
     border-radius: 50%; /* Menos redondo, más tipo 'app' */

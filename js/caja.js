@@ -1,20 +1,27 @@
 // 1. IMPORTAMOS TODO LO NECESARIO
 import { productosRef, ventasRef, onSnapshot, addDoc } from './db.js';
-// Variables del carrito
+
+// Variables globales
 let carrito = [];
+let productosBaseDatos = []; // <--- Esta es la clave para que el filtro funcione
 
 // 2. ESCUCHAR PRODUCTOS EN TIEMPO REAL
-// Esto reemplaza a Dexie. Cuando cambies un precio en Admin, aquí cambia solo.
 onSnapshot(productosRef, (snapshot) => {
-    const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderizarMenu(productos);
+    // Guardamos los productos en la variable global para que filtrarMenu pueda verlos
+    productosBaseDatos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderizarMenu(productosBaseDatos);
 });
 
-function renderizarMenu(productos) {
+function renderizarMenu(productosAMostrar) {
     const contenedor = document.getElementById('menu');
     if (!contenedor) return;
 
-    contenedor.innerHTML = productos.map(p => {
+    if (productosAMostrar.length === 0) {
+        contenedor.innerHTML = "<p style='padding:20px;'>No hay productos en esta categoría.</p>";
+        return;
+    }
+
+    contenedor.innerHTML = productosAMostrar.map(p => {
         const esImagen = p.imagen.includes('/') || p.imagen.includes('.');
         const visual = esImagen 
             ? `<img src="${p.imagen}" class="card-img">` 
@@ -32,34 +39,32 @@ function renderizarMenu(productos) {
     }).join('');
 }
 
-
-// --- NUEVAS FUNCIONES DE FILTRADO ---
+// --- FUNCIONES DE FILTRADO CORREGIDAS ---
 
 window.filtrarMenu = function(categoria, boton) {
-    // 1. Quitar clase 'active' de todos los botones y ponerla en el seleccionado
+    // 1. Estética: Quitar clase 'active' y ponerla al nuevo
     document.querySelectorAll('.categorias-bar button').forEach(btn => btn.classList.remove('active'));
     boton.classList.add('active');
 
-    // 2. Filtrar la lista
+    // 2. Lógica: Usamos la variable global productosBaseDatos
     if (categoria === 'Todos') {
-        renderizarMenu(productos);
+        renderizarMenu(productosBaseDatos);
     } else {
-        const filtrados = productos.filter(p => p.categoria === categoria);
+        const filtrados = productosBaseDatos.filter(p => p.categoria === categoria);
         renderizarMenu(filtrados);
     }
 }
 
 window.buscarProducto = function() {
     const termino = document.getElementById('buscador').value.toLowerCase();
-    const filtrados = productos.filter(p => 
+    const filtrados = productosBaseDatos.filter(p => 
         p.nombre.toLowerCase().includes(termino)
     );
     renderizarMenu(filtrados);
 }
 
-// ... Mantén tus funciones de carrito (agregarAlCarrito, actualizarVistaCarrito, etc.) ...
+// --- FUNCIONES DEL CARRITO ---
 
-// 3. FUNCIONES DEL CARRITO (Se quedan casi igual, pero con IDs de Firebase)
 window.agregarAlCarrito = function(id, nombre, precio) {
     const itemExistente = carrito.find(item => item.id === id);
     if (itemExistente) {
@@ -72,8 +77,10 @@ window.agregarAlCarrito = function(id, nombre, precio) {
 
 function actualizarVistaCarrito() {
     const lista = document.getElementById('lista-orden');
-    const totalElemento = document.getElementById('total-pagar');
+    const totalElemento = document.getElementById('total-pagar'); // Asegúrate que este ID exista en tu HTML
     let total = 0;
+
+    if (!lista) return;
 
     lista.innerHTML = carrito.map((item, index) => {
         total += item.precio * item.cantidad;
@@ -86,12 +93,19 @@ function actualizarVistaCarrito() {
         `;
     }).join('');
 
-    totalElemento.innerText = total.toFixed(2);
+    if (totalElemento) totalElemento.innerText = `$${total.toFixed(2)}`;
 }
 
 window.eliminarDelCarrito = function(index) {
     carrito.splice(index, 1);
     actualizarVistaCarrito();
+}
+
+window.limpiarCarrito = function() {
+    if(confirm("¿Vaciar la orden actual?")) {
+        carrito = [];
+        actualizarVistaCarrito();
+    }
 }
 
 // 4. GUARDAR LA VENTA EN LA NUBE
@@ -103,7 +117,7 @@ window.finalizarVenta = async function() {
 
     const nuevaVenta = {
         fecha: new Date().toLocaleString(),
-        fechaNum: Date.now(), // Para ordenar por fecha fácilmente
+        fechaNum: Date.now(),
         detalle: detalle,
         total: total
     };
