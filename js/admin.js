@@ -1,77 +1,36 @@
-// js/admin.js
+// 1. IMPORTAMOS LAS FUNCIONES DE FIREBASE (Asegúrate que db.js esté configurado)
+import { 
+    db, 
+    productosRef, 
+    ventasRef, 
+    addDoc, 
+    getDocs, 
+    onSnapshot, 
+    doc, 
+    deleteDoc, 
+    updateDoc 
+} from "./db.js";
 
+// Variables globales
 const formulario = document.getElementById('form-producto');
 const tablaCuerpo = document.getElementById('cuerpo-tabla');
 
-// Cargar productos al abrir la página
-document.addEventListener('DOMContentLoaded', listarProductos);
+// --- SECCIÓN DE PRODUCTOS (FIREBASE) ---
 
-async function guardarProducto(e) {
-    e.preventDefault(); // Evita que la página se recargue
+// Escuchar productos en tiempo real (Sustituye al antiguo listarProductos)
+onSnapshot(productosRef, (snapshot) => {
+    const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderizarTablaProductos(productos);
+});
 
-    const formulario = document.getElementById('form-producto');
-    const nombre = document.getElementById('nombre').value;
-    const precio = parseFloat(document.getElementById('precio').value);
-    const imagen = document.getElementById('imagen').value || "🌮"; // Si está vacío, pone un taco
-    const categoria = document.getElementById('categoria').value;
-    
-    // Obtenemos el ID si estamos editando
-    const editId = formulario.dataset.editId;
-
-    // Validación básica
-    if (!nombre || isNaN(precio)) {
-        alert("Por favor, llena nombre y precio correctamente.");
-        return;
-    }
-
-    try {
-        if (editId) {
-            // SI ESTAMOS EDITANDO: Usamos .put para actualizar el existente
-            await db.productos.put({
-                id: parseInt(editId),
-                nombre: nombre,
-                precio: precio,
-                imagen: imagen,
-                categoria: categoria
-            });
-            console.log("Producto actualizado exitosamente");
-            
-            // Limpiamos el modo edición
-            delete formulario.dataset.editId;
-            document.querySelector('.btn-guardar').innerText = "Guardar Producto";
-        } else {
-            // SI ES NUEVO: Usamos .add
-            await db.productos.add({
-                nombre: nombre,
-                precio: precio,
-                imagen: imagen,
-                categoria: categoria
-            });
-            console.log("Producto guardado exitosamente");
-        }
-
-        // Limpiar el formulario y refrescar la lista
-        formulario.reset();
-        listarProductos(); 
-        
-    } catch (error) {
-        console.error("Error al procesar:", error);
-        alert("No se pudo guardar en la base de datos.");
-    }
-}
-
-async function listarProductos() {
-    const productos = await db.productos.toArray();
-    
-    // Es importante usar el ID correcto de tu tabla en admin.html
-    const tabla = document.getElementById('cuerpo-tabla');
-    
-    tabla.innerHTML = productos.map(p => {
+function renderizarTablaProductos(productos) {
+    tablaCuerpo.innerHTML = productos.map(p => {
         const esImagen = p.imagen.includes('/') || p.imagen.includes('.');
         const miniatura = esImagen 
             ? `<img src="${p.imagen}" width="40" height="40" style="object-fit:cover; border-radius:4px;">` 
             : `<span style="font-size: 24px;">${p.imagen}</span>`;
 
+        // Nota: El ID de Firebase es una cadena de texto (ej. "Jsk82Lskw")
         return `
             <tr>
                 <td>${miniatura}</td>
@@ -81,64 +40,87 @@ async function listarProductos() {
                 </td>
                 <td>$${p.precio.toFixed(2)}</td>
                 <td>
-                    <button class="btn-editar" onclick="prepararEdicion(${p.id}, '${p.nombre}', ${p.precio}, '${p.categoria}', '${p.imagen}')">✏️</button>
-                    <button class="btn-eliminar" onclick="eliminarProducto(${p.id})">🗑️</button>
+                    <button class="btn-editar" data-id="${p.id}" data-nombre="${p.nombre}" data-precio="${p.precio}" data-categoria="${p.categoria}" data-imagen="${p.imagen}">✏️</button>
+                    <button class="btn-eliminar" data-id="${p.id}">🗑️</button>
                 </td>
             </tr>
         `;
     }).join('');
+
+    // Asignar eventos a los botones generados
+    asignarEventosBotones();
 }
 
-async function eliminarProducto(id) {
-    if (confirm("¿Eliminar este producto?")) {
-        await db.productos.delete(id);
-        listarProductos();
+// Función para guardar o actualizar
+async function manejarEnvioFormulario(e) {
+    e.preventDefault();
+    
+    const nombre = document.getElementById('nombre').value;
+    const precio = parseFloat(document.getElementById('precio').value);
+    const imagen = document.getElementById('imagen').value || "🌮";
+    const categoria = document.getElementById('categoria').value;
+    const editId = formulario.dataset.editId;
+
+    if (!nombre || isNaN(precio)) return alert("Llena los campos correctamente.");
+
+    const datosProducto = { nombre, precio, imagen, categoria };
+
+    try {
+        if (editId) {
+            // ACTUALIZAR EN FIREBASE
+            const productoDoc = doc(db, "productos", editId);
+            await updateDoc(productoDoc, datosProducto);
+            delete formulario.dataset.editId;
+            document.querySelector('.btn-guardar').innerText = "Guardar Producto";
+        } else {
+            // GUARDAR NUEVO EN FIREBASE
+            await addDoc(productosRef, datosProducto);
+        }
+        formulario.reset();
+    } catch (error) {
+        console.error("Error:", error);
     }
 }
 
-// Al cargar la página de admin, también listamos las ventas
-document.addEventListener('DOMContentLoaded', () => {
-    listarProductos();
-    listarVentas();
+// --- SECCIÓN DE VENTAS (FIREBASE) ---
+
+onSnapshot(ventasRef, (snapshot) => {
+    const ventas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderizarVentas(ventas);
 });
 
-async function listarVentas() {
-    const ventas = await db.ventas.toArray();
+function renderizarVentas(ventas) {
     const tablaVentas = document.getElementById('cuerpo-ventas');
-    
     let ingresosTotales = 0;
     let conteoProductos = {};
 
-    // Calculamos estadísticas
     ventas.forEach(v => {
         ingresosTotales += v.total;
-        
-        // El detalle viene como "2x Taco Bistec, 1x Coca"
-        // Lo separamos para contar cuál se repite más
         const partes = v.detalle.split(', ');
         partes.forEach(p => {
-            const [cant, nombre] = p.split('x ');
-            conteoProductos[nombre] = (conteoProductos[nombre] || 0) + parseInt(cant);
+            const match = p.match(/(\d+)x (.+)/);
+            if (match) {
+                const cant = parseInt(match[1]);
+                const nombre = match[2];
+                conteoProductos[nombre] = (conteoProductos[nombre] || 0) + cant;
+            }
         });
     });
 
-    // Encontrar el producto más vendido
-    let productoMasVendido = "-";
+    let productoEstrella = "-";
     let maxVentas = 0;
     for (const [nombre, cantidad] of Object.entries(conteoProductos)) {
         if (cantidad > maxVentas) {
             maxVentas = cantidad;
-            productoMasVendido = nombre;
+            productoEstrella = nombre;
         }
     }
 
-    // Mostrar en pantalla
     document.getElementById('total-dinero').innerText = `$${ingresosTotales.toFixed(2)}`;
     document.getElementById('cantidad-ventas').innerText = ventas.length;
-    document.getElementById('producto-estrella').innerText = productoMasVendido;
+    document.getElementById('producto-estrella').innerText = productoEstrella;
 
-    // Pintar la tabla (tu código actual)
-    tablaVentas.innerHTML = ventas.reverse().map(v => `
+    tablaVentas.innerHTML = ventas.sort((a,b) => b.fechaNum - a.fechaNum).map(v => `
         <tr>
             <td>${v.fecha}</td>
             <td>${v.detalle}</td>
@@ -147,83 +129,41 @@ async function listarVentas() {
     `).join('');
 }
 
-async function exportarExcel() {
-    const ventas = await db.ventas.toArray();
-    if (ventas.length === 0) {
-        alert("No hay ventas registradas para exportar.");
-        return;
-    }
+// --- FUNCIONES DE APOYO ---
 
-    // Cabecera del CSV
-    let csv = "Fecha y Hora,Detalle de Productos,Total\n";
-    
-    // Filas
-    ventas.forEach(v => {
-        // Limpiamos comas en el detalle para no romper el CSV
-        const detalleLimpio = v.detalle.replace(/,/g, " -");
-        csv += `${v.fecha},${detalleLimpio},${v.total}\n`;
+function asignarEventosBotones() {
+    document.querySelectorAll('.btn-eliminar').forEach(btn => {
+        btn.onclick = async () => {
+            if (confirm("¿Eliminar producto?")) {
+                await deleteDoc(doc(db, "productos", btn.dataset.id));
+            }
+        };
     });
 
-    // Crear el archivo y descargarlo
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute("href", url);
-    link.setAttribute("download", `Corte_Caja_${new Date().toLocaleDateString()}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    document.querySelectorAll('.btn-editar').forEach(btn => {
+        btn.onclick = () => {
+            document.getElementById('nombre').value = btn.dataset.nombre;
+            document.getElementById('precio').value = btn.dataset.precio;
+            document.getElementById('categoria').value = btn.dataset.categoria;
+            document.getElementById('imagen').value = btn.dataset.imagen;
+            formulario.dataset.editId = btn.dataset.id;
+            document.querySelector('.btn-guardar').innerText = "Actualizar Producto";
+        };
+    });
 }
 
-async function borrarHistorial() {
-    if(confirm("¿Estás seguro de borrar todas las ventas? Haz esto solo después de guardar tu Excel.")) {
-        await db.ventas.clear();
-        listarVentas();
-    }
-}
+// Configurar el formulario
+formulario.addEventListener('submit', manejarEnvioFormulario);
 
-// Nueva función para cargar los datos en el formulario y poder editarlos
-function prepararEdicion(id, nombre, precio, categoria, imagen) {
-    document.getElementById('nombre').value = nombre;
-    document.getElementById('precio').value = precio;
-    document.getElementById('categoria').value = categoria;
-    document.getElementById('imagen').value = imagen;
-
-    // Cambiamos el comportamiento del botón de guardar para que sepa que estamos editando
-    const btnGuardar = document.querySelector('.btn-guardar');
-    btnGuardar.innerText = "Actualizar Producto";
-    
-    // Guardamos el ID que estamos editando en el propio formulario
-    const formulario = document.getElementById('form-producto');
-    formulario.dataset.editId = id;
-}
-
-function generarQR() {
-    // Obtenemos la dirección actual de tu página index.html
+// QR y extras
+window.generarQR = function() {
     const urlMenu = window.location.href.replace('admin.html', 'index.html');
-
-    // Limpiamos el contenedor por si ya había un QR
     document.getElementById("qrcode").innerHTML = "";
-
-    // Creamos el QR
     new QRCode(document.getElementById("qrcode"), {
         text: urlMenu,
-        width: 200,
-        height: 200,
-        colorDark : "#1d3557", // El azul que estamos usando
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H
+        width: 200, height: 200,
+        colorDark : "#1d3557", colorLight : "#ffffff"
     });
-}
+};
 
-// Llamamos a la función al cargar la página
-document.addEventListener('DOMContentLoaded', () => {
-    // ... tus otras funciones (listarVentas, etc)
-    generarQR();
-});
-
-function imprimirQR() {
-    window.print(); // Esto abrirá el menú de impresión para que saques tu QR en papel
-}
+document.addEventListener('DOMContentLoaded', window.generarQR);
