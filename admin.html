@@ -46,7 +46,7 @@
                 </form>
             </section>
 
-            <section class="admin-card list-section">
+            <section id="seccion-menu-pdf" class="admin-card list-section">
                 <h2>Productos en el Menú</h2>
                 <div class="table-container">
                     <table class="admin-table">
@@ -102,10 +102,16 @@
             </section>
 
             <section class="admin-card qr-section">
-                <h2>Menú Digital (Qr)</h2>
-                <p>Muestra este código a tus clientes para que vean el menú en su celular.</p>
-                <div id="qrcode" style="display: flex; justify-content: center; margin: 20px 0;"></div>
-                <button class="btn-guardar" onclick="imprimirQR()">Imprimir Código QR</button>
+                <h2>Menú para Imprimir (PDF)</h2>
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 50px; margin-bottom: 10px;">📋</div>
+                    
+                    <p>Genera una versión limpia de tu menú para imprimir o guardar como PDF.</p>
+                    
+                    <a href="menu-print.html" class="btn-guardar" style="display: inline-block; text-decoration: none; text-align: center;">
+                        Ver Menú Limpio
+                    </a>
+                </div>
             </section>
         </main>
     </div>

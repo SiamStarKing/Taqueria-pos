@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Menú Taquería - Versión Impresa</title>
+    <link rel="stylesheet" href="css/styles.css"> <style>
+        body { background: white; padding: 40px; font-family: sans-serif; }
+        .header-print { text-align: center; margin-bottom: 30px; }
+        .header-print h1 { color: #1d3557; font-size: 32px; margin: 0; }
+        .header-print p { color: #666; margin: 5px 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { border-bottom: 2px solid #1d3557; padding: 10px; text-align: left; color: #1d3557; }
+        td { border-bottom: 1px solid #eee; padding: 15px 10px; font-size: 18px; vertical-align: middle; }
+        
+        .precio { font-weight: bold; color: #1d3557; text-align: right; }
+        .emoji { font-size: 24px; width: 40px; }
+        
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="margin-bottom: 20px;">
+        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">🖨️ Guardar como PDF / Imprimir</button>
+        <a href="admin.html" class="no-print" style="margin-left: 15px; color: #1d3557; text-decoration: none; font-weight: bold;">⬅️ Volver al Panel</a>
+    </div>
+
+    <div class="header-print">
+        <h1>🌮 TAQUERÍA 🌮</h1>
+        <p>Pachuca de Soto, Hidalgo</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th></th>
+                <th>Producto</th>
+                <th style="text-align: right;">Precio</th>
+            </tr>
+        </thead>
+        <tbody id="tabla-menu">
+            </tbody>
+    </table>
+
+    <script src="js/dexie.min.js"></script>
+    <script src="js/db.js"></script>
+    <script>
+        async function cargarMenuLimpio() {
+            const productos = await db.productos.toArray();
+            const tabla = document.getElementById('tabla-menu');
+            
+            tabla.innerHTML = productos.map(p => `
+                <tr>
+                    <td class="emoji">${p.imagen}</td>
+                    <td>
+                        <strong>${p.nombre}</strong><br>
+                        <small style="color: #888;">${p.categoria || ''}</small>
+                    </td>
+                    <td class="precio">$${p.precio.toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+        document.addEventListener('DOMContentLoaded', cargarMenuLimpio);
+    </script>
+</body>
+</html>

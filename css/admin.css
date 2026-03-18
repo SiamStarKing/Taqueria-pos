@@ -224,14 +224,6 @@
     box-shadow: 0 0 10px rgba(42, 157, 143, 0.15);
 }
 
-@media print {
-    /* Al imprimir, solo queremos que salga el QR y no todo el panel de admin */
-    body * {visibility: hidden;}
-    .qr-section, .qr-section * {visibility: visible;}
-    .qr-section {position: absolute; left: 0; top:0; width: 100%;}
-    .btn-guardar {display: none;}
-}
-
 @media (max-width: 600px) {
     .grid-form{
         grid-template-columns: 1fr;
