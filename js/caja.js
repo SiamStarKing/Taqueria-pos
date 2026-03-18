@@ -1,11 +1,5 @@
 // 1. IMPORTAMOS DESDE TU NUEVO DB.JS
-import { 
-    db, 
-    productosRef, 
-    ventasRef, 
-    onSnapshot, 
-    addDoc 
-} from "./db.js";
+import { productosRef, onSnapshot } from './db.js';
 
 // Variables del carrito
 let carrito = [];

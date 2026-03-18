@@ -46,11 +46,12 @@
 
     <script src="js/dexie.min.js"></script>
     <script src="js/db.js"></script>
-    <script>
-        async function cargarMenuLimpio() {
-            const productos = await db.productos.toArray();
+    <script type="module">
+        // Importamos directamente desde tu db.js
+        import { productosRef, onSnapshot } from './js/db.js';
+
+        function cargarMenuLimpio(productos) {
             const tabla = document.getElementById('tabla-menu');
-            
             tabla.innerHTML = productos.map(p => `
                 <tr>
                     <td class="emoji">${p.imagen}</td>
@@ -62,7 +63,12 @@
                 </tr>
             `).join('');
         }
-        document.addEventListener('DOMContentLoaded', cargarMenuLimpio);
+
+        // Escuchar cambios en tiempo real
+        onSnapshot(productosRef, (snapshot) => {
+            const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            cargarMenuLimpio(productos);
+        });
     </script>
 </body>
 </html>
