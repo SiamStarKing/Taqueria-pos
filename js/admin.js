@@ -1,5 +1,5 @@
 // 1. IMPORTAMOS LAS FUNCIONES DE FIREBASE (Asegúrate que db.js esté configurado)
-import { db, productosRef, ventasRef, addDoc, onSnapshot, doc, deleteDoc, updateDoc } from './db.js';
+import { db, productosRef, ventasRef, addDoc, onSnapshot, doc, deleteDoc, updateDoc, writeBatch, getDocs } from './db.js';
 
 // Variables globales
 const formulario = document.getElementById('form-producto');
@@ -141,6 +141,66 @@ function asignarEventosBotones() {
         };
     });
 }
+
+// 1. DESCARGAR EXCEL (Formato CSV compatible con Excel)
+window.descargarExcel = async function() {
+    try {
+        // Obtenemos los datos frescos de la nube
+        const querySnapshot = await getDocs(ventasRef);
+        const ventas = querySnapshot.docs.map(doc => doc.data());
+
+        if (ventas.length === 0) return alert("No hay ventas registradas para exportar.");
+
+        // Crear encabezado del archivo
+        let csvContent = "\ufeff"; // BOM para que Excel reconozca los acentos (UTF-8)
+        csvContent += "Fecha,Detalle de Orden,Total Cobrado\n";
+        
+        // Agregar cada venta como una fila
+        ventas.forEach(v => {
+            // Limpiamos las comas del detalle para que no se muevan las columnas en Excel
+            const detalleLimpio = v.detalle.replace(/,/g, " -"); 
+            csvContent += `${v.fecha},${detalleLimpio},${v.total}\n`;
+        });
+
+        // Crear el enlace de descarga
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Corte_Caja_Taqueria_${new Date().toLocaleDateString()}.csv`);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+    } catch (error) {
+        console.error("Error al exportar:", error);
+        alert("Hubo un problema al generar el reporte.");
+    }
+};
+
+// 2. BORRAR HISTORIAL (Limpiar la colección de ventas en Firebase)
+import { writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"; // Asegura que estén importados
+
+window.borrarHistorialVentas = async function() {
+    if (!confirm("⚠️ ¡ADVERTENCIA! ¿Estás seguro de borrar TODAS las ventas de la nube? Esta acción no se puede deshacer.")) return;
+
+    try {
+        const querySnapshot = await getDocs(ventasRef);
+        if (querySnapshot.empty) return alert("No hay ventas que borrar.");
+
+        const batch = writeBatch(db);
+        querySnapshot.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+        alert("✅ Historial de ventas borrado correctamente.");
+    } catch (error) {
+        console.error("Error al borrar:", error);
+        alert("Error al intentar conectar con la base de datos.");
+    }
+};
 
 // Configurar el formulario
 formulario.addEventListener('submit', manejarEnvioFormulario);

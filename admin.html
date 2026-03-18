@@ -19,7 +19,7 @@
         <main class="admin-main">
             <section class="admin-card form-section">
                 <h2>Agregar Nuevo Producto</h2>
-                <form id="form-producto" onsubmit="guardarProducto(event)" class="grid-form">
+                <form id="form-producto" type="submit" class="grid-form">
                     <div class="field">
                         <label>Nombre del Producto</label>
                         <input type="text" id="nombre" placeholder="Ej. Taco de Bistec" required>
@@ -84,8 +84,8 @@
             <section class="admin-card">
                 <h2>Corte de Caja</h2>
                 <div class="acciones-corte">
-                    <button class="btn-descargar" onclick="exportarExcel()">Descargar Reporte Excel</button>
-                    <button class="btn-limpiar-ventas" onclick="borrarHistorial()">Borrar Historial de Ventas</button>
+                    <button class="btn-descargar" onclick="descargarExcel()">📊 Descargar Reporte Excel</button>
+                    <button class="btn-limpiar-ventas" onclick="borrarHistorialVentas()">🗑️ Borrar Historial de Ventas</button>
                 </div>
                 <div class="table-container">
                     <table class="admin-table">
