@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taqueria-v2'; // <--- Cambiamos a v2
+const CACHE_NAME = 'taqueria-v1'; // <--- Cambiamos a v2
 const ASSETS = [
     './',
     'index.html',

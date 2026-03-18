@@ -321,6 +321,43 @@ body, html {
 .btn-admin:active {
     transform: scale(0.9) rotate(90deg); /* Efecto de pulsación */
 }
+
+.btn-regresar {
+    text-decoration: none;
+    background: var(--azul);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    flex-shrink: 0; /* IMPRESCINDIBLE: evita que el botón se deforme */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+    margin-left: 15px;
+}
+
+.btn-regresar:hover {
+    background: #2c4a75; /* Un tono un poco más claro del azul original */
+}
+
+.boton-imprimir {
+    background: var(--verde);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    
+}
+
+.no-print {
+    justify-content: space-between;
+}
+
+
 /* MODO RESPOSIVO */
 @media (max-width: 480px) {
     .menu-header {
@@ -338,7 +375,7 @@ body, html {
 
     .app-container {
         grid-template-columns: 1fr;
-        grid-template-rows: 1fr 350px; /* Reducimos de 300px a 250px */
+        grid-template-rows: 1fr 250px; /* Reducimos de 300px a 250px */
     }
 
     .total-container {

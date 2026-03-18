@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Menú Taquería - Versión Impresa</title>
+    <link rel="icon" href="img/taco.png">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/styles.css"> <style>
         body { background: white; padding: 40px; font-family: sans-serif; }
         .header-print { text-align: center; margin-bottom: 30px; }
@@ -23,8 +25,8 @@
 </head>
 <body>
     <div class="no-print" style="margin-bottom: 20px;">
-        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">🖨️ Guardar como PDF / Imprimir</button>
-        <a href="admin.html" class="no-print" style="margin-left: 15px; color: #1d3557; text-decoration: none; font-weight: bold;">⬅️ Volver al Panel</a>
+        <a href="admin.html" class="no-print btn-regresar">⬅️ Volver al Panel</a>
+        <button class="boton-imprimir" onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">🖨️ Guardar como PDF / Imprimir</button>
     </div>
 
     <div class="header-print">

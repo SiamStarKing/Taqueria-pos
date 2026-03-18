@@ -144,16 +144,3 @@ function asignarEventosBotones() {
 
 // Configurar el formulario
 formulario.addEventListener('submit', manejarEnvioFormulario);
-
-// QR y extras
-window.generarQR = function() {
-    const urlMenu = window.location.href.replace('admin.html', 'index.html');
-    document.getElementById("qrcode").innerHTML = "";
-    new QRCode(document.getElementById("qrcode"), {
-        text: urlMenu,
-        width: 200, height: 200,
-        colorDark : "#1d3557", colorLight : "#ffffff"
-    });
-};
-
-document.addEventListener('DOMContentLoaded', window.generarQR);
