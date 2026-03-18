@@ -64,58 +64,83 @@ window.buscarProducto = function() {
 }
 
 // --- FUNCIONES DEL CARRITO ---
-
 window.agregarAlCarrito = function(id, nombre, precio) {
+    console.log("Intentando agregar:", nombre); // Esto te avisará en la consola (F12) si funciona
+    
     const itemExistente = carrito.find(item => item.id === id);
+    
     if (itemExistente) {
         itemExistente.cantidad++;
     } else {
-        carrito.push({ id, nombre, precio, cantidad: 1 });
+        carrito.push({ 
+            id: id, 
+            nombre: nombre, 
+            precio: parseFloat(precio), 
+            cantidad: 1 
+        });
     }
     actualizarVistaCarrito();
 }
 
+// 2. Cambiar cantidad (+ o -)
+window.cambiarCantidad = function(index, delta) {
+    if (carrito[index]) {
+        carrito[index].cantidad += delta;
+        
+        // Si la cantidad es 0 o menos, lo quitamos del carrito
+        if (carrito[index].cantidad <= 0) {
+            carrito.splice(index, 1);
+        }
+        actualizarVistaCarrito();
+    }
+}
+
+// 3. Eliminar por completo
+window.eliminarDelCarrito = function(index) {
+    carrito.splice(index, 1);
+    actualizarVistaCarrito();
+}
+
+// 4. Dibujar el carrito en pantalla
 function actualizarVistaCarrito() {
-    const lista = document.getElementById('lista-carrito');
+    const lista = document.getElementById('lista-orden');
     const totalElemento = document.getElementById('total-pagar');
     let total = 0;
 
-    if (!lista) return;
+    if (!lista) {
+        console.error("No se encontró el elemento 'lista-orden' en el HTML");
+        return;
+    }
 
     lista.innerHTML = carrito.map((item, index) => {
         const subtotal = item.precio * item.cantidad;
         total += subtotal;
         
         return `
-            <div class="item-carrito" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee;">
-                <div style="flex-grow: 1;">
+            <div class="item-carrito" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #ddd;">
+                <div style="flex: 1;">
                     <strong>${item.nombre}</strong><br>
-                    <small>$${item.precio.toFixed(2)} c/u</small>
+                    <small>$${item.precio.toFixed(2)}</small>
                 </div>
                 
-                <div class="controles-cantidad" style="display: flex; align-items: center; gap: 10px;">
-                    <button onclick="cambiarCantidad(${index}, -1)" style="background: #e63946; color: white; border: none; border-radius: 4px; width: 25px; cursor: pointer;">-</button>
-                    
-                    <span style="font-weight: bold; min-width: 20px; text-align: center;">${item.cantidad}</span>
-                    
-                    <button onclick="cambiarCantidad(${index}, 1)" style="background: #2a9d8f; color: white; border: none; border-radius: 4px; width: 25px; cursor: pointer;">+</button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button onclick="cambiarCantidad(${index}, -1)" style="width:28px; height:28px; border-radius:50%; border:none; background:#ff4d4d; color:white; cursor:pointer;">-</button>
+                    <span style="font-weight:bold; width:20px; text-align:center;">${item.cantidad}</span>
+                    <button onclick="cambiarCantidad(${index}, 1)" style="width:28px; height:28px; border-radius:50%; border:none; background:#2ecc71; color:white; cursor:pointer;">+</button>
                 </div>
 
-                <div style="margin-left: 15px; min-width: 60px; text-align: right;">
-                    <strong>$${subtotal.toFixed(2)}</strong>
+                <div style="width: 70px; text-align: right; font-weight: bold; margin-left:10px;">
+                    $${subtotal.toFixed(2)}
                 </div>
                 
-                <button onclick="eliminarDelCarrito(${index})" style="background: none; border: none; cursor: pointer; margin-left: 10px;">❌</button>
+                <button onclick="eliminarDelCarrito(${index})" style="background:none; border:none; cursor:pointer; font-size:18px; margin-left:5px;">🗑️</button>
             </div>
         `;
     }).join('');
 
-    if (totalElemento) totalElemento.innerText = `$${total.toFixed(2)}`;
-}
-
-window.eliminarDelCarrito = function(index) {
-    carrito.splice(index, 1);
-    actualizarVistaCarrito();
+    if (totalElemento) {
+        totalElemento.innerText = `$${total.toFixed(2)}`;
+    }
 }
 
 window.limpiarCarrito = function() {
@@ -125,19 +150,6 @@ window.limpiarCarrito = function() {
     }
 }
 
-window.cambiarCantidad = function(index, delta) {
-    const item = carrito[index];
-    
-    // Sumamos o restamos (delta será 1 o -1)
-    item.cantidad += delta;
-
-    // Si la cantidad llega a 0, lo eliminamos automáticamente
-    if (item.cantidad <= 0) {
-        carrito.splice(index, 1);
-    }
-
-    actualizarVistaCarrito();
-}
 
 // 4. GUARDAR LA VENTA EN LA NUBE
 window.finalizarVenta = async function() {
