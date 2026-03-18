@@ -1,15 +1,5 @@
 // 1. IMPORTAMOS LAS FUNCIONES DE FIREBASE (Asegúrate que db.js esté configurado)
-import { 
-    db, 
-    productosRef, 
-    ventasRef, 
-    addDoc, 
-    getDocs, 
-    onSnapshot, 
-    doc, 
-    deleteDoc, 
-    updateDoc 
-} from "./db.js";
+import { db, productosRef, ventasRef, addDoc, onSnapshot, doc, deleteDoc, updateDoc } from './db.js';
 
 // Variables globales
 const formulario = document.getElementById('form-producto');

@@ -1,148 +1,100 @@
+// 1. IMPORTAMOS DESDE TU NUEVO DB.JS
+import { 
+    db, 
+    productosRef, 
+    ventasRef, 
+    onSnapshot, 
+    addDoc 
+} from "./db.js";
+
+// Variables del carrito
 let carrito = [];
 
-async function cargarMenu() {
-    filtrarMenu('Todos');
-}
+// 2. ESCUCHAR PRODUCTOS EN TIEMPO REAL
+// Esto reemplaza a Dexie. Cuando cambies un precio en Admin, aquí cambia solo.
+onSnapshot(productosRef, (snapshot) => {
+    const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderizarMenu(productos);
+});
 
-async function filtrarMenu(categoriaSeleccionada, elementoBoton) {
-    // Limpiar buscador si se usa categoría
-    if (elementoBoton) document.getElementById('buscador').value = "";
+function renderizarMenu(productos) {
+    const contenedor = document.getElementById('menu-grid');
+    if (!contenedor) return;
 
-    // Resaltar botón activo
-    const botones = document.querySelectorAll('.categorias-bar button');
-    botones.forEach(btn => btn.classList.remove('active'));
-    
-    if (elementoBoton) {
-        elementoBoton.classList.add('active');
-    } else {
-        const btnTodos = document.querySelector('.categorias-bar button');
-        if (btnTodos) btnTodos.classList.add('active');
-    }
-
-    const todos = await db.productos.toArray();
-    const filtrados = categoriaSeleccionada === 'Todos' 
-        ? todos 
-        : todos.filter(p => p.categoria === categoriaSeleccionada);
-
-    renderizarProductos(filtrados);
-}
-
-async function buscarProducto() {
-    const texto = document.getElementById('buscador').value.toLowerCase();
-    const todos = await db.productos.toArray();
-
-    const filtrados = todos.filter(p => 
-        p.nombre.toLowerCase().includes(texto) || 
-        (p.categoria && p.categoria.toLowerCase().includes(texto))
-    );
-
-    if (texto.length > 0) {
-        document.querySelectorAll('.categorias-bar button').forEach(btn => btn.classList.remove('active'));
-    }
-    renderizarProductos(filtrados);
-}
-
-function renderizarProductos(productos) {
-    const menuGrid = document.getElementById('menu');
-    menuGrid.innerHTML = productos.map(p => {
+    contenedor.innerHTML = productos.map(p => {
         const esImagen = p.imagen.includes('/') || p.imagen.includes('.');
-        const imagenHTML = esImagen 
-            ? `<img src="${p.imagen}">` 
-            : `<div class="emoji-display">${p.imagen}</div>`;
+        const visual = esImagen 
+            ? `<img src="${p.imagen}" class="card-img">` 
+            : `<div class="card-emoji">${p.imagen}</div>`;
 
         return `
-            <div class="card" onclick="agregarAlCarrito('${p.nombre}', ${p.precio})">
-                ${imagenHTML}
-                <div class="info">
-                    <span class="nombre">${p.nombre}</span>
-                    <span class="precio">$${p.precio.toFixed(2)}</span>
+            <div class="card" onclick="agregarAlCarrito('${p.id}', '${p.nombre}', ${p.precio})">
+                ${visual}
+                <div class="card-info">
+                    <h3>${p.nombre}</h3>
+                    <p class="precio">$${p.precio.toFixed(2)}</p>
                 </div>
             </div>
         `;
     }).join('');
 }
 
-function agregarAlCarrito(nombre, precio) {
-    // Buscar si el producto ya está en el carrito
-    const itemExistente = carrito.find(item => item.nombre === nombre);
-
+// 3. FUNCIONES DEL CARRITO (Se quedan casi igual, pero con IDs de Firebase)
+window.agregarAlCarrito = function(id, nombre, precio) {
+    const itemExistente = carrito.find(item => item.id === id);
     if (itemExistente) {
         itemExistente.cantidad++;
     } else {
-        // Si es nuevo, lo agregamos con cantidad 1
-        carrito.push({ 
-            nombre, 
-            precio, 
-            cantidad: 1, 
-            idTemp: Date.now() 
-        });
+        carrito.push({ id, nombre, precio, cantidad: 1 });
     }
-    actualizarTicket();
+    actualizarVistaCarrito();
 }
 
-// Nueva función para reducir cantidad o quitar si llega a 0
-function reducirCantidad(nombre) {
-    const itemIndex = carrito.findIndex(item => item.nombre === nombre);
-    
-    if (itemIndex > -1) {
-        carrito[itemIndex].cantidad--;
-        
-        // Si la cantidad llega a 0, lo eliminamos por completo
-        if (carrito[itemIndex].cantidad <= 0) {
-            carrito.splice(itemIndex, 1);
-        }
-    }
-    actualizarTicket();
-}
+function actualizarVistaCarrito() {
+    const lista = document.getElementById('lista-carrito');
+    const totalElemento = document.getElementById('total-pagar');
+    let total = 0;
 
-function quitarDelCarrito(idTemp) {
-    carrito = carrito.filter(item => item.idTemp !== idTemp);
-    actualizarTicket();
-}
-
-function actualizarTicket() {
-    const lista = document.getElementById('lista-orden');
-    const totalElem = document.getElementById('gran-total');
-    
-    lista.innerHTML = carrito.map(item => `
-        <div class="item-carrito">
-            <div class="item-info">
-                <span class="item-nombre">${item.nombre}</span>
-                <span class="item-subtotal">$${(item.precio * item.cantidad).toFixed(2)}</span>
+    lista.innerHTML = carrito.map((item, index) => {
+        total += item.precio * item.cantidad;
+        return `
+            <div class="item-carrito">
+                <span>${item.cantidad}x ${item.nombre}</span>
+                <span>$${(item.precio * item.cantidad).toFixed(2)}</span>
+                <button onclick="eliminarDelCarrito(${index})">❌</button>
             </div>
-            <div class="item-controles">
-                <button class="btn-menos" onclick="reducirCantidad('${item.nombre}')">−</button>
-                <span class="item-cantidad">x${item.cantidad}</span>
-                <button class="btn-mas" onclick="agregarAlCarrito('${item.nombre}', ${item.precio})">+</button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 
-    // Calcular el total multiplicando precio por cantidad
-    const total = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-    totalElem.innerText = `$${total.toFixed(2)}`;
+    totalElemento.innerText = total.toFixed(2);
 }
 
-async function finalizarVenta() {
-    if (carrito.length === 0) return alert("Carrito vacío");
+window.eliminarDelCarrito = function(index) {
+    carrito.splice(index, 1);
+    actualizarVistaCarrito();
+}
 
-    const total = carrito.reduce((acc, item) => acc + item.precio, 0);
-    const resumen = carrito.reduce((acc, item) => {
-        acc[item.nombre] = (acc[item.nombre] || 0) + 1;
-        return acc;
-    }, {});
-    
-    const detalle = Object.entries(resumen).map(([n, c]) => `${c}x ${n}`).join(', ');
+// 4. GUARDAR LA VENTA EN LA NUBE
+window.finalizarVenta = async function() {
+    if (carrito.length === 0) return alert("El carrito está vacío");
 
-    await db.ventas.add({
+    const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    const detalle = carrito.map(item => `${item.cantidad}x ${item.nombre}`).join(', ');
+
+    const nuevaVenta = {
         fecha: new Date().toLocaleString(),
-        total: total,
-        detalle: detalle
-    });
+        fechaNum: Date.now(), // Para ordenar por fecha fácilmente
+        detalle: detalle,
+        total: total
+    };
 
-    alert("¡Venta cobrada con éxito!");
-    carrito = [];
-    actualizarTicket();
+    try {
+        await addDoc(ventasRef, nuevaVenta);
+        alert("¡Venta guardada en la nube!");
+        carrito = [];
+        actualizarVistaCarrito();
+    } catch (error) {
+        console.error("Error al vender:", error);
+        alert("Error al conectar con Firebase");
+    }
 }
-
-document.addEventListener('DOMContentLoaded', cargarMenu);
