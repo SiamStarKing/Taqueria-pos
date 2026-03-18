@@ -2,19 +2,23 @@
 import { productosRef, ventasRef, onSnapshot, addDoc } from './db.js';
 // Variables del carrito
 let carrito = [];
+let productosLocales = []; // Aquí guardaremos la copia para filtrar
 
 // 2. ESCUCHAR PRODUCTOS EN TIEMPO REAL
 // Esto reemplaza a Dexie. Cuando cambies un precio en Admin, aquí cambia solo.
+// ESCUCHAR LA NUBE
 onSnapshot(productosRef, (snapshot) => {
-    const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderizarMenu(productos);
+    // Guardamos los datos en nuestra variable local
+    productosLocales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Por defecto mostramos todos al cargar
+    renderizarMenu(productosLocales);
 });
 
-function renderizarMenu(productos) {
-    const contenedor = document.getElementById('menu');
+function renderizarMenu(listaAMostrar) {
+    const contenedor = document.getElementById('menu-grid');
     if (!contenedor) return;
 
-    contenedor.innerHTML = productos.map(p => {
+    contenedor.innerHTML = listaAMostrar.map(p => {
         const esImagen = p.imagen.includes('/') || p.imagen.includes('.');
         const visual = esImagen 
             ? `<img src="${p.imagen}" class="card-img">` 
@@ -31,6 +35,32 @@ function renderizarMenu(productos) {
         `;
     }).join('');
 }
+
+// --- NUEVAS FUNCIONES DE FILTRADO ---
+
+window.filtrarMenu = function(categoria, boton) {
+    // 1. Quitar clase 'active' de todos los botones y ponerla en el seleccionado
+    document.querySelectorAll('.categorias-bar button').forEach(btn => btn.classList.remove('active'));
+    boton.classList.add('active');
+
+    // 2. Filtrar la lista
+    if (categoria === 'Todos') {
+        renderizarMenu(productosLocales);
+    } else {
+        const filtrados = productosLocales.filter(p => p.categoria === categoria);
+        renderizarMenu(filtrados);
+    }
+}
+
+window.buscarProducto = function() {
+    const termino = document.getElementById('buscador').value.toLowerCase();
+    const filtrados = productosLocales.filter(p => 
+        p.nombre.toLowerCase().includes(termino)
+    );
+    renderizarMenu(filtrados);
+}
+
+// ... Mantén tus funciones de carrito (agregarAlCarrito, actualizarVistaCarrito, etc.) ...
 
 // 3. FUNCIONES DEL CARRITO (Se quedan casi igual, pero con IDs de Firebase)
 window.agregarAlCarrito = function(id, nombre, precio) {
