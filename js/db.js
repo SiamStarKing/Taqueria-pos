@@ -1,7 +1,9 @@
 // Importar las funciones necesarias de Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, deleteDoc, updateDoc } 
-from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// Agrega writeBatch y getDocs aquí
+import { 
+    getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, writeBatch, getDocs 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Tu configuración de Firebase (PEGA LA TUYA AQUÍ)
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -23,17 +25,7 @@ const productosRef = collection(db, "productos");
 const ventasRef = collection(db, "ventas"); // Agregamos ventas de una vez
 
 // EXPORTAMOS TODO PARA QUE ADMIN.JS PUEDA USARLO
-export { 
-    db, 
-    productosRef, 
-    ventasRef, 
-    addDoc, 
-    getDocs, 
-    onSnapshot, 
-    doc, 
-    deleteDoc, 
-    updateDoc 
-};
+export { db, productosRef, ventasRef, addDoc, onSnapshot, doc, deleteDoc, updateDoc, writeBatch, getDocs };
 
 // 1. Guardar un producto (Mantenemos esta por si la usas directo)
 export async function guardarProducto(producto) {
