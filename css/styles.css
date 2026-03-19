@@ -43,11 +43,29 @@ body, html {
     flex-shrink: 0; /* Evita que el título se aplaste */
 }
 
-/* DISPLAY DE TARJETAS */
 .menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 15px;
+    height: 250px;
+}
+
+/* DISPLAY DE TARJETAS */
+/* Contenedor de cada sección (Título + Productos) */
+.categoria-bloque {
+    margin-bottom: 25px;
+}
+
+/* Título de la categoría (Alimento, Bebida, etc) */
+.categoria-titulo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #000;
+}
+
+/* Contenedor flexible para las tarjetas */
+.productos-flex {
+    display: flex;
+    flex-wrap: wrap; /* Permite que pasen a la siguiente línea si no caben */
+    gap: 12px;
 }
 
 /* TARJETAS DE PRODUCTO */
@@ -60,6 +78,8 @@ body, html {
     text-align: center;
     border: 3px solid transparent;
     transition: 0.1s;
+    width: 140px;
+    height: 120px;
 }
 
 .card:active {
@@ -72,6 +92,10 @@ body, html {
     height: 100px;
     object-fit: cover;
     background: #eee;
+}
+
+.card-emoji {
+    font-size: 3rem;
 }
 
 .card .info {
@@ -413,5 +437,9 @@ body, html {
         overflow-y: auto;
         margin-bottom: 10px; /* Reducimos margen */
         padding-right: 5px; /* Espacio para el scroll */
+    }
+
+    .menu-grid {
+        height: 250px;
     }
 }

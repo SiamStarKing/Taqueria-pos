@@ -17,26 +17,53 @@ function renderizarMenu(productosAMostrar) {
     if (!contenedor) return;
 
     if (productosAMostrar.length === 0) {
-        contenedor.innerHTML = "<p style='padding:20px;'>No hay productos en esta categoría.</p>";
+        contenedor.innerHTML = "<p style='padding:20px;'>No hay productos que coincidan.</p>";
         return;
     }
 
-    contenedor.innerHTML = productosAMostrar.map(p => {
-        const esImagen = p.imagen.includes('/') || p.imagen.includes('.');
-        const visual = esImagen 
-            ? `<img src="${p.imagen}" class="card-img">` 
-            : `<div class="card-emoji">${p.imagen}</div>`;
+    // 1. Definimos el orden exacto (asegúrate que coincidan con tus datos)
+    const ordenCategorias = ['Alimento', 'Bebida', 'Extra', 'Postre', 'Dulce'];
+    let htmlFinal = '';
 
-        return `
-            <div class="card" onclick="agregarAlCarrito('${p.id}', '${p.nombre}', ${p.precio})">
-                ${visual}
-                <div class="card-info">
-                    <h3>${p.nombre}</h3>
-                    <p class="precio">$${p.precio.toFixed(2)}</p>
+    ordenCategorias.forEach(cat => {
+        // Filtramos productos por categoría
+        const productosDeCategoria = productosAMostrar.filter(p => p.categoria === cat);
+
+        if (productosDeCategoria.length > 0) {
+            // Título de la categoría y contenedor de sus tarjetas
+            htmlFinal += `
+                <div class="categoria-bloque">
+                    <h2 class="categoria-titulo">${cat}</h2>
+                    <div class="productos-flex">
+            `;
+
+            htmlFinal += productosDeCategoria.map(p => {
+                const esImagen = p.imagen.includes('/') || p.imagen.includes('.');
+                const visual = esImagen 
+                    ? `<img src="${p.imagen}" class="card-img">` 
+                    : `<span class="card-emoji">${p.imagen}</span>`;
+
+                return `
+                    <div class="card" onclick="agregarAlCarrito('${p.id}', '${p.nombre}', ${p.precio})">
+                        <div class="card-content">
+                            ${visual}
+                            <div class="card-texto">
+                                <span class="nombre">${p.nombre}</span>
+                                <span class="precio">$${p.precio.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            htmlFinal += `
+                    </div>
                 </div>
-            </div>
-        `;
-    }).join('');
+            `;
+        }
+    });
+
+    contenedor.innerHTML = htmlFinal;
 }
 
 // --- FUNCIONES DE FILTRADO CORREGIDAS ---
