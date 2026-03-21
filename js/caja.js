@@ -233,3 +233,94 @@ window.finalizarVenta = async function() {
         alert("Error al conectar con Firebase");
     }
 }
+
+let totalVentaGlobal = 0;
+
+window.finalizarVenta = function() {
+    if (carrito.length === 0) return alert("El carrito está vacío");
+    
+    // Calculamos el total actual
+    totalVentaGlobal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    
+    // Preparamos el modal
+    document.getElementById('modal-total').innerText = `$${totalVentaGlobal.toFixed(2)}`;
+    document.getElementById('monto-recibido').value = '';
+    document.getElementById('modal-cambio').innerText = `$0.00`;
+    
+    // Mostramos el modal
+    document.getElementById('modal-cobro').style.display = 'flex';
+    
+    // Focus automático al input para no tener que dar clic
+    setTimeout(() => document.getElementById('monto-recibido').focus(), 100);
+}
+
+window.cerrarModalPago = function() {
+    document.getElementById('modal-cobro').style.display = 'none';
+}
+
+window.fijarMonto = function(cantidad) {
+    document.getElementById('monto-recibido').value = cantidad;
+    calcularCambioReal();
+}
+
+window.calcularCambioReal = function() {
+    const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
+    const cambio = recibido - totalVentaGlobal;
+    const elCambio = document.getElementById('modal-cambio');
+    
+    if (cambio < 0) {
+        elCambio.innerText = `$0.00`;
+        elCambio.style.color = 'var(--rojo)';
+    } else {
+        elCambio.innerText = `$${cambio.toFixed(2)}`;
+        elCambio.style.color = 'var(--verde)';
+    }
+}
+
+// Esta función es la que finalmente guarda en Firebase
+window.procesarVentaFinal = async function() {
+    const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
+    
+    if (recibido < totalVentaGlobal) {
+        return alert("El efectivo recibido es insuficiente.");
+    }
+
+    const cambio = recibido - totalVentaGlobal;
+    const detalle = carrito.map(item => `${item.cantidad}x ${item.nombre}`).join(', ');
+
+    const nuevaVenta = {
+        fecha: new Date().toLocaleString(),
+        fechaNum: Date.now(),
+        detalle: detalle,
+        total: totalVentaGlobal,
+        pagoCon: recibido,
+        cambio: cambio
+    };
+
+    try {
+        // ventasRef y addDoc vienen de tu importación de db.js
+        await addDoc(ventasRef, nuevaVenta);
+        alert(`¡Venta guardada!\nCambio a entregar: $${cambio.toFixed(2)}`);
+        
+        // Limpiamos todo
+        carrito = [];
+        actualizarVistaCarrito();
+        cerrarModalPago();
+    } catch (error) {
+        console.error("Error al guardar venta:", error);
+        alert("Error al conectar con el servidor.");
+    }
+}
+
+window.toggleOrden = function() {
+    const ticket = document.getElementById('ticket-movil');
+    ticket.classList.toggle('expandido');
+    
+    // Cambiar el texto según el estado
+    const texto = ticket.querySelector('.ticket-swipe-handle p');
+    if (ticket.classList.contains('expandido')) {
+        texto.innerText = "Cerrar orden";
+    } else {
+        texto.innerText = "Ver mi orden";
+    }
+}
