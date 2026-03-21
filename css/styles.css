@@ -451,8 +451,9 @@ body, html {
 
     .app-container {
         grid-template-columns: 1fr;
-        grid-template-rows: 1fr ; /* Reducimos de 300px a 250px */
+        grid-template-rows: 1fr 90px; /* Reducimos de 300px a 250px */
     }
+    
 
     .total-container {
         display: flex;
