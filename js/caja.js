@@ -180,21 +180,52 @@ window.limpiarCarrito = function() {
 
 // 4. GUARDAR LA VENTA EN LA NUBE
 window.finalizarVenta = async function() {
+    // 1. Verificación básica
     if (carrito.length === 0) return alert("El carrito está vacío");
 
+    // 2. Calcular el total de la orden
     const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+
+    // 3. Pedir el monto con el que paga el cliente
+    const montoRecibidoStr = prompt(`Total a pagar: $${total.toFixed(2)}\n\n¿Con cuánto paga el cliente?`);
+
+    // Si el usuario cancela el prompt
+    if (montoRecibidoStr === null) return;
+
+    const montoRecibido = parseFloat(montoRecibidoStr);
+
+    // 4. Validar que el monto sea un número y sea suficiente
+    if (isNaN(montoRecibido)) {
+        alert("Por favor, ingresa una cantidad válida.");
+        return;
+    }
+
+    if (montoRecibido < total) {
+        alert(`Cantidad insuficiente. Faltan $${(total - montoRecibido).toFixed(2)}`);
+        return;
+    }
+
+    // 5. Calcular el cambio
+    const cambio = montoRecibido - total;
+
+    // 6. Mostrar el cambio al usuario
+    alert(`--------------------------\n   CAMBIO: $${cambio.toFixed(2)}\n--------------------------`);
+
+    // 7. Guardar la venta en la nube (tu lógica original)
     const detalle = carrito.map(item => `${item.cantidad}x ${item.nombre}`).join(', ');
 
     const nuevaVenta = {
         fecha: new Date().toLocaleString(),
         fechaNum: Date.now(),
         detalle: detalle,
-        total: total
+        total: total,
+        pagoCon: montoRecibido, // Guardamos también con cuánto pagó
+        cambio: cambio          // Y cuánto devolvimos
     };
 
     try {
         await addDoc(ventasRef, nuevaVenta);
-        alert("¡Venta guardada en la nube!");
+        // Limpiar carrito después del éxito
         carrito = [];
         actualizarVistaCarrito();
     } catch (error) {
