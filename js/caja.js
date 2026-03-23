@@ -45,12 +45,10 @@ function renderizarMenu(productosAMostrar) {
 
                 return `
                     <div class="card" onclick="agregarAlCarrito('${p.id}', '${p.nombre}', ${p.precio})">
-                        <div class="card-content">
-                            ${visual}
-                            <div class="card-texto">
-                                <span class="nombre">${p.nombre}</span>
-                                <span class="precio">$${p.precio.toFixed(2)}</span>
-                            </div>
+                        ${visual} 
+                        <div class="card-texto">
+                            <span class="nombre">${p.nombre}</span>
+                            <span class="precio">$${p.precio.toFixed(2)}</span>
                         </div>
                     </div>
                 `;

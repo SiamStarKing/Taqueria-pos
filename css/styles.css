@@ -77,45 +77,65 @@ body, html {
 .card {
     background: white;
     border-radius: 12px;
-    overflow: hidden;
+    padding: 10px;
+    width: 140px; /* O el ancho que prefieras */
+    min-height: 160px; /* Altura mínima para que todas se vean iguales */
+    display: flex;
+    flex-direction: column; /* Apila: Imagen arriba, Texto abajo */
+    align-items: center;
+    justify-content: space-between; /* Mantiene el precio siempre abajo */
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border: 1px solid #eee;
+    overflow: hidden; /* Corta cualquier cosa que intente salirse */
     cursor: pointer;
-    text-align: center;
-    border: 3px solid transparent;
-    transition: 0.1s;
-    width: 140px;
-    height: 120px;
+    transition: transform 0.2s;
 }
 
-.card:active {
-    transform: scale(0.95);
-    border-color: var(--rojo);
-}
-
-.card img {
+/* Contenedor de la imagen o emoji */
+.card-img, .card-emoji {
     width: 100%;
-    height: 100px;
-    object-fit: cover;
-    background: #eee;
+    height: 80px; /* Altura fija para la imagen */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+.card-img {
+    object-fit: cover; /* Esto hace que la imagen se recorte y no se deforme */
+    border-radius: 8px;
 }
 
 .card-emoji {
-    font-size: 3rem;
+    font-size: 2.5rem; /* Tamaño grande para el emoji */
 }
 
-.card .info {
-    padding: 10px;
+/* Control del texto */
+.card-texto {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.card .nombre {
-    display: block;
+.card-texto .nombre {
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    color: #333;
+    line-height: 1.2;
+    /* Truco para nombres largos: muestra máximo 2 líneas y luego pone "..." */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.card .precio {
-    color: var(--verde);
-    font-weight: bold;
+.card-texto .precio {
+    color: #2a9d8f;
+    font-weight: 800;
+    font-size: 0.9rem;
+    margin-top: auto; /* Empuja el precio al final de la tarjeta */
 }
 
 /* --- ESTILOS DE LA SECCIÓN DEL TICKET (COMPUTADORA) --- */

@@ -1,7 +1,15 @@
 // 1. IMPORTAMOS LAS FUNCIONES DE FIREBASE (Asegúrate que db.js esté configurado)
 import { 
-    db, productosRef, ventasRef, addDoc, onSnapshot, 
-    doc, deleteDoc, updateDoc, writeBatch, getDocs 
+    db, 
+    productosRef, 
+    ventasRef, 
+    addDoc, 
+    onSnapshot, 
+    doc, 
+    deleteDoc, 
+    updateDoc, 
+    writeBatch, 
+    getDocs,
 } from './db.js';
 
 // Variables globales
@@ -50,28 +58,33 @@ async function manejarEnvioFormulario(e) {
     
     const nombre = document.getElementById('nombre').value;
     const precio = parseFloat(document.getElementById('precio').value);
-    const imagen = document.getElementById('imagen').value || "🌮";
+    const imagen = document.getElementById('imagen').value.trim(); // Lee el texto o emoji
     const categoria = document.getElementById('categoria').value;
     const editId = formulario.dataset.editId;
 
-    if (!nombre || isNaN(precio)) return alert("Llena los campos correctamente.");
+    if (!nombre || isNaN(precio)) return alert("Revisa los datos");
 
-    const datosProducto = { nombre, precio, imagen, categoria };
+    const datosProducto = { 
+        nombre, 
+        precio, 
+        imagen: imagen || "🌮", // Si dejas vacío, pone el taco
+        categoria 
+    };
 
     try {
         if (editId) {
-            // ACTUALIZAR EN FIREBASE
-            const productoDoc = doc(db, "productos", editId);
-            await updateDoc(productoDoc, datosProducto);
+            await updateDoc(doc(db, "productos", editId), datosProducto);
             delete formulario.dataset.editId;
             document.querySelector('.btn-guardar').innerText = "Guardar Producto";
         } else {
-            // GUARDAR NUEVO EN FIREBASE
             await addDoc(productosRef, datosProducto);
         }
+        
         formulario.reset();
+        alert("¡Producto guardado correctamente!");
     } catch (error) {
         console.error("Error:", error);
+        alert("Error al guardar en la nube.");
     }
 }
 
@@ -125,6 +138,7 @@ function renderizarVentas(ventas) {
 // --- FUNCIONES DE APOYO ---
 
 function asignarEventosBotones() {
+    // Evento Eliminar (Se queda igual)
     document.querySelectorAll('.btn-eliminar').forEach(btn => {
         btn.onclick = async () => {
             if (confirm("¿Eliminar producto?")) {
@@ -133,14 +147,17 @@ function asignarEventosBotones() {
         };
     });
 
+    // Evento Editar (Corregido para no dar error de NULL)
     document.querySelectorAll('.btn-editar').forEach(btn => {
         btn.onclick = () => {
             document.getElementById('nombre').value = btn.dataset.nombre;
             document.getElementById('precio').value = btn.dataset.precio;
             document.getElementById('categoria').value = btn.dataset.categoria;
-            document.getElementById('imagen').value = btn.dataset.imagen;
+            document.getElementById('imagen').value = btn.dataset.imagen; // Rellena la URL/Emoji
+
             formulario.dataset.editId = btn.dataset.id;
             document.querySelector('.btn-guardar').innerText = "Actualizar Producto";
+            window.scrollTo(0, 0);
         };
     });
 }

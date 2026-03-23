@@ -4,72 +4,140 @@
     <meta charset="UTF-8">
     <title>Menú Taquería - Versión Impresa</title>
     <link rel="icon" href="img/taco.png">
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/styles.css"> <style>
-        body { background: white; padding: 40px; font-family: sans-serif; }
-        .header-print { text-align: center; margin-bottom: 30px; }
-        .header-print h1 { color: #1d3557; font-size: 32px; margin: 0; }
-        .header-print p { color: #666; margin: 5px 0; }
+    <style>
+        /* Ajustes para que quepa en una sola hoja */
+        body { 
+            background: white; 
+            padding: 15px 30px; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            color: #333;
+            margin: 0;
+        }
+        .header-print { 
+            text-align: center; 
+            margin-bottom: 10px; 
+            border-bottom: 2px solid #1d3557; 
+            padding-bottom: 5px; 
+        }
+        .header-print h1 { font-size: 26px; margin: 0; color: #1d3557; }
+        .header-print p { font-size: 14px; margin: 2px 0; color: #666; }
+
+        table { width: 100%; border-collapse: collapse; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { border-bottom: 2px solid #1d3557; padding: 10px; text-align: left; color: #1d3557; }
-        td { border-bottom: 1px solid #eee; padding: 15px 10px; font-size: 18px; vertical-align: middle; }
+        /* Filas compactas */
+        td { 
+            padding: 4px 8px; 
+            border-bottom: 1px solid #eee; 
+            font-size: 15px; 
+            vertical-align: middle; 
+        }
         
-        .precio { font-weight: bold; color: #1d3557; text-align: right; }
-        .emoji { font-size: 24px; width: 40px; }
-        
+        /* Encabezados de Categoría */
+        .cat-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #1d3557;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+            padding: 8px;
+            border-left: 4px solid #1d3557;
+        }
+
+        .precio { 
+            font-weight: bold; 
+            color: #1d3557; 
+            text-align: right; 
+            width: 80px;
+        }
+
+        /* Imágenes y Emojis pequeños */
+        .img-mini { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; }
+        .emoji-mini { font-size: 20px; }
+
+        .no-print { 
+            background: #f4f4f4; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            gap: 10px; 
+            border-radius: 8px;
+        }
+
         @media print {
-            .no-print { display: none; }
+            .no-print { display: none !important; }
+            body { padding: 0; }
+            tr { page-break-inside: avoid; }
         }
     </style>
 </head>
 <body>
-    <div class="no-print" style="margin-bottom: 20px;">
-        <a href="admin.html" class="no-print btn-regresar">⬅️ Volver al Panel</a>
-        <button class="boton-imprimir" onclick="window.print()" style="padding: 10px 20px; cursor: pointer;">🖨️ Guardar como PDF / Imprimir</button>
+
+    <div class="no-print" style="margin-bottom: 30px; display: flex; gap: 15px;">
+        <a href="admin.html" class="btn-regresar" style="text-decoration: none; background: #eee; padding: 10px 20px; border-radius: 5px; color: #333;">⬅️ Panel</a>
+        <button onclick="window.print()" style="padding: 10px 20px; cursor: pointer; background: #1d3557; color: white; border: none; border-radius: 5px; font-weight: bold;">🖨️ Imprimir Menú</button>
     </div>
 
     <div class="header-print">
         <h1>🌮 TAQUERÍA 🌮</h1>
         <p>Pachuca de Soto, Hidalgo</p>
+        <p style="font-size: 14px;">¡Sabor real en cada taco!</p>
     </div>
 
     <table>
-        <thead>
-            <tr>
-                <th></th>
-                <th>Producto</th>
-                <th style="text-align: right;">Precio</th>
-            </tr>
-        </thead>
         <tbody id="tabla-menu">
             </tbody>
     </table>
 
-    <script src="js/dexie.min.js"></script>
-    <script src="js/db.js"></script>
     <script type="module">
-        // Importamos directamente desde tu db.js
         import { productosRef, onSnapshot } from './js/db.js';
 
-        function cargarMenuLimpio(productos) {
+        function cargarMenu(productos) {
             const tabla = document.getElementById('tabla-menu');
-            tabla.innerHTML = productos.map(p => `
-                <tr>
-                    <td class="emoji">${p.imagen}</td>
-                    <td>
-                        <strong>${p.nombre}</strong><br>
-                        <small style="color: #888;">${p.categoria || ''}</small>
-                    </td>
-                    <td class="precio">$${p.precio.toFixed(2)}</td>
-                </tr>
-            `).join('');
+            tabla.innerHTML = "";
+
+            // 1. Orden de prioridad solicitado
+            const orden = ["ALIMENTO", "BEBIDA", "EXTRAS", "POSTRE", "DULCE"];
+
+            // 2. Agrupar
+            const grupos = {};
+            productos.forEach(p => {
+                const cat = (p.categoria || "ALIMENTO").toUpperCase();
+                if (!grupos[cat]) grupos[cat] = [];
+                grupos[cat].push(p);
+            });
+
+            // 3. Ordenar categorías
+            const existentes = Object.keys(grupos).sort((a, b) => {
+                let idxA = orden.indexOf(a);
+                let idxB = orden.indexOf(b);
+                return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+            });
+
+            // 4. Renderizar
+            existentes.forEach(cat => {
+                tabla.innerHTML += `<tr><td colspan="3" class="cat-header">${cat}</td></tr>`;
+                
+                grupos[cat].forEach(p => {
+                    const esUrl = p.imagen && p.imagen.startsWith('http');
+                    const visual = esUrl 
+                        ? `<img src="${p.imagen}" class="img-mini">` 
+                        : `<span class="emoji-mini">${p.imagen || '🌮'}</span>`;
+
+                    tabla.innerHTML += `
+                        <tr>
+                            <td style="width: 40px; text-align: center;">${visual}</td>
+                            <td><strong>${p.nombre}</strong></td>
+                            <td class="precio">$${p.precio.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+            });
         }
 
-        // Escuchar cambios en tiempo real
         onSnapshot(productosRef, (snapshot) => {
             const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            cargarMenuLimpio(productos);
+            cargarMenu(productos);
         });
     </script>
 </body>
