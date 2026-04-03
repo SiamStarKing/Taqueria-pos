@@ -21,16 +21,17 @@ function renderizarMenu(productosAMostrar) {
         return;
     }
 
-    // 1. Definimos el orden exacto (asegúrate que coincidan con tus datos)
+    // 1. Definimos el orden de las categorías (puedes cambiar este orden si gustas)
     const ordenCategorias = ['Alimento', 'Bebida', 'Extra', 'Postre', 'Dulce'];
     let htmlFinal = '';
 
     ordenCategorias.forEach(cat => {
-        // Filtramos productos por categoría
-        const productosDeCategoria = productosAMostrar.filter(p => p.categoria === cat);
+        // --- CAMBIO AQUÍ: FILTRAR Y LUEGO ORDENAR POR PRECIO ---
+        const productosDeCategoria = productosAMostrar
+            .filter(p => p.categoria === cat)
+            .sort((a, b) => a.precio - b.precio); // <--- Ordena de $10 a $100...
 
         if (productosDeCategoria.length > 0) {
-            // Título de la categoría y contenedor de sus tarjetas
             htmlFinal += `
                 <div class="categoria-bloque">
                     <h2 class="categoria-titulo">${cat}</h2>
@@ -175,7 +176,6 @@ window.limpiarCarrito = function() {
     }
 }
 
-
 // 4. GUARDAR LA VENTA EN LA NUBE
 window.finalizarVenta = async function() {
     // 1. Verificación básica
@@ -295,18 +295,23 @@ window.procesarVentaFinal = async function() {
         cambio: cambio
     };
 
+    // --- AQUÍ ESTÁ EL CAMBIO CLAVE ---
+    
+    // 1. LIMPIAMOS TODO DE INMEDIATO (Antes del await)
+    // Esto hace que la interfaz se resetee aunque no haya internet
+    carrito = []; 
+    actualizarVistaCarrito();
+    cerrarModalPago();
+
+    // 2. Intentamos guardar en Firebase
     try {
-        // ventasRef y addDoc vienen de tu importación de db.js
-        await addDoc(ventasRef, nuevaVenta);
-        alert(`¡Venta guardada!\nCambio a entregar: $${cambio.toFixed(2)}`);
+        // Al quitar el 'await', el programa sigue su curso sin esperar al servidor.
+        // O si dejas el 'await', ya no importa porque el carrito ya se limpió arriba.
+        addDoc(ventasRef, nuevaVenta); 
         
-        // Limpiamos todo
-        carrito = [];
-        actualizarVistaCarrito();
-        cerrarModalPago();
+        alert(`¡Venta procesada!\nCambio a entregar: $${cambio.toFixed(2)}`);
     } catch (error) {
-        console.error("Error al guardar venta:", error);
-        alert("Error al conectar con el servidor.");
+        console.error("Error al intentar registrar:", error);
     }
 }
 
@@ -322,3 +327,11 @@ window.toggleOrden = function() {
         texto.innerText = "Ver mi orden";
     }
 }
+
+window.addEventListener('offline', () => {
+    alert("Te has quedado sin internet. Las ventas se guardarán localmente y se subirán al volver la conexión.");
+});
+
+window.addEventListener('online', () => {
+    console.log("¡Conexión restaurada! Sincronizando datos...");
+});
