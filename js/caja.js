@@ -256,10 +256,37 @@ window.cerrarModalPago = function() {
     document.getElementById('modal-cobro').style.display = 'none';
 }
 
+window.agregarNumero = function(num) {
+    const input = document.getElementById('monto-recibido');
+    
+    // Evitar dos puntos decimales
+    if (num === '.' && input.value.includes('.')) return;
+    
+    input.value += num;
+    
+    // Si tienes una función calcularCambioReal() ya creada, llámala aquí:
+    if (typeof calcularCambioReal === 'function') {
+        calcularCambioReal();
+    }
+};
+
+window.borrarMonto = function() {
+    const input = document.getElementById('monto-recibido');
+    input.value = "";
+    if (typeof calcularCambioReal === 'function') {
+        calcularCambioReal();
+    }
+};
+
 window.fijarMonto = function(cantidad) {
-    document.getElementById('monto-recibido').value = cantidad;
-    calcularCambioReal();
-}
+    const input = document.getElementById('monto-recibido');
+    input.value = cantidad;
+    
+    // Llamamos a la función que calcula el cambio
+    if (typeof calcularCambioReal === 'function') {
+        calcularCambioReal();
+    }
+};
 
 window.calcularCambioReal = function() {
     const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
@@ -275,12 +302,16 @@ window.calcularCambioReal = function() {
     }
 }
 
-// Esta función es la que finalmente guarda en Firebase
 window.procesarVentaFinal = async function() {
     const recibido = parseFloat(document.getElementById('monto-recibido').value) || 0;
     
+    // En lugar de un alert, marcamos el error visualmente si el dinero no alcanza
     if (recibido < totalVentaGlobal) {
-        return alert("El efectivo recibido es insuficiente.");
+        document.getElementById('monto-recibido').style.border = "3px solid red";
+        setTimeout(() => {
+            document.getElementById('monto-recibido').style.border = "";
+        }, 2000);
+        return; 
     }
 
     const cambio = recibido - totalVentaGlobal;
@@ -295,25 +326,74 @@ window.procesarVentaFinal = async function() {
         cambio: cambio
     };
 
-    // --- AQUÍ ESTÁ EL CAMBIO CLAVE ---
-    
-    // 1. LIMPIAMOS TODO DE INMEDIATO (Antes del await)
-    // Esto hace que la interfaz se resetee aunque no haya internet
+    // 1. REFERENCIA AL BOTÓN (Para dar aviso visual sin alerts)
+    const btnConfirmar = document.querySelector('.modal-footer .btn-cobrar');
+    const textoOriginal = btnConfirmar.innerHTML;
+
+    // 2. AVISO VISUAL DE ÉXITO Y CAMBIO
+    // Ponemos el cambio en el botón para que lo veas rápido
+    btnConfirmar.innerHTML = `✅ CAMBIO: $${cambio.toFixed(2)}`;
+    btnConfirmar.style.backgroundColor = "#2ecc71"; // Verde éxito
+    btnConfirmar.disabled = true; // Evita doble clic
+
+    // 3. LIMPIAMOS LA INTERFAZ DE INMEDIATO
     carrito = []; 
     actualizarVistaCarrito();
-    cerrarModalPago();
 
-    // 2. Intentamos guardar en Firebase
+    // 4. GUARDAR EN FIREBASE (Se hace en segundo plano)
     try {
-        // Al quitar el 'await', el programa sigue su curso sin esperar al servidor.
-        // O si dejas el 'await', ya no importa porque el carrito ya se limpió arriba.
         addDoc(ventasRef, nuevaVenta); 
         
-        alert(`¡Venta procesada!\nCambio a entregar: $${cambio.toFixed(2)}`);
+        // 5. CERRAMOS AUTOMÁTICAMENTE después de 1.5 segundos
+        // Tiempo suficiente para que leas el cambio sin tocar nada
+        setTimeout(() => {
+            cerrarModalPago();
+            // Restauramos el botón para la siguiente venta
+            btnConfirmar.innerHTML = textoOriginal;
+            btnConfirmar.style.backgroundColor = "";
+            btnConfirmar.disabled = false;
+        }, 1500);
+
     } catch (error) {
-        console.error("Error al intentar registrar:", error);
+        console.error("Error al registrar venta:", error);
+        btnConfirmar.innerHTML = "❌ Error al guardar";
+        btnConfirmar.style.backgroundColor = "#e74c3c";
     }
 }
+
+// Detectar teclas físicas de la computadora
+document.addEventListener('keydown', (event) => {
+    // Solo actuar si el modal de cobro está visible
+    const modalCobro = document.getElementById('modal-cobro');
+    if (modalCobro && modalCobro.style.display !== 'none') {
+        
+        const input = document.getElementById('monto-recibido');
+        const tecla = event.key;
+
+        // Si presionan números o el punto
+        if (!isNaN(tecla) || tecla === '.') {
+            if (tecla === '.' && input.value.includes('.')) return;
+            input.value += tecla;
+            if (typeof calcularCambioReal === 'function') calcularCambioReal();
+        }
+
+        // Si presionan la tecla de borrar (Backspace)
+        if (tecla === 'Backspace') {
+            input.value = input.value.slice(0, -1);
+            if (typeof calcularCambioReal === 'function') calcularCambioReal();
+        }
+
+        // Si presionan "Enter", procesamos la venta
+        if (tecla === 'Enter') {
+            procesarVentaFinal();
+        }
+
+        // Si presionan "Escape", cerramos el modal
+        if (tecla === 'Escape') {
+            cerrarModalPago();
+        }
+    }
+});
 
 window.toggleOrden = function() {
     const ticket = document.getElementById('ticket-movil');

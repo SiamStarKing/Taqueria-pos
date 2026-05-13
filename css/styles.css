@@ -454,6 +454,111 @@ body, html {
 .modal-footer { display: flex; gap: 10px; }
 .modal-footer button { flex: 1; padding: 15px; }
 
+
+/*TECLADO*/
+.seccion-teclado-pago {
+    display: grid;
+    grid-template-columns: 1fr 180px; /* Divide espacio para entrada y teclado */
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.teclado-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.num-btn {
+    height: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.num-btn:active {
+    background: #e0e0e0;
+}
+
+.num-btn.borrar {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+#monto-recibido {
+    font-size: 2rem !important; /* Número grande para ver bien el pago */
+    text-align: center;
+}
+
+/* Contenedor principal del modal en horizontal */
+.pago-layout-horizontal {
+    display: grid;
+    grid-template-columns: 1fr 365px; /* La izquierda crece, la derecha es fija para el teclado */
+    gap: 20px;
+}
+
+/* Columna de info (izquierda) */
+.columna-info-pago {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Teclado (derecha) */
+.teclado-numerico-derecha {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+}
+
+.num-btn {
+    height: 60px; /* Botones más altos para la tablet */
+    font-size: 1.5rem;
+    font-weight: bold;
+    border: none;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.num-btn:active { background: #eee; }
+.num-btn.borrar { background: #ffdee2; color: #d63031; }
+
+/* Botones rápidos en 2x2 para ahorrar espacio vertical */
+.botones-rapidos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.botones-rapidos-grid button {
+    padding: 10px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: white;
+}
+
+/* Ajuste para que el modal no sea muy estrecho */
+.modal-content {
+    max-width: 800px !important; 
+    width: 95%;
+}
+        
+/* Ajuste para que en celulares no se vea amontonado */
+@media (max-width: 600px) {
+    .seccion-teclado-pago {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* MODO RESPOSIVO */
 @media (max-width: 480px) {
     .menu-header {
