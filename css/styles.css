@@ -121,9 +121,6 @@ body, html {
     color: #333;
     line-height: 1.2;
     /* Truco para nombres largos: muestra máximo 2 líneas y luego pone "..." */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
 }
