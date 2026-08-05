@@ -35,11 +35,8 @@ body, html {
 
 .menu-header {
     display: flex;
-    gap: 15px;
+    justify-content: space-between;
     align-items: center;
-    justify-content: space-between; /* Mantiene título a la izquierda y engrane a la derecha */
-    margin-bottom: 20px;
-    padding: 10px 0;
 }
 
 .menu-header h1 {
@@ -280,6 +277,35 @@ body, html {
     color: white;
 }
 
+@media (max-width: 600px) {
+    .productos-flex {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* Crea 3 columnas de igual tamaño */
+        gap: 6px; /* Espacio reducido entre tarjetas */
+    }
+
+    .card {
+        width: 100%; /* La tarjeta se ajusta al tamaño exacto de su columna */
+        min-height: 135px; /* Altura un poco más pequeña */
+        padding: 6px;
+    }
+
+    .card-img, .card-emoji {
+        height: 50px; /* Reduce la imagen para que quepa bien el texto */
+        margin-bottom: 4px;
+    }
+
+    .card-texto .nombre {
+        font-size: 0.75rem; /* Texto ajustado para pantalla reducida */
+        text-align: center;
+    }
+
+    .card-texto .precio {
+        font-size: 0.8rem;
+        text-align: center;
+    }
+}
+
 /* ESTILO CATEGORIAS */
 .categorias-bar {
     display: flex;
@@ -469,25 +495,6 @@ body, html {
     gap: 8px;
 }
 
-.num-btn {
-    height: 50px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    border: 1px solid #ddd;
-    background: #fff;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.num-btn:active {
-    background: #e0e0e0;
-}
-
-.num-btn.borrar {
-    background: #f8d7da;
-    color: #721c24;
-}
-
 #monto-recibido {
     font-size: 2rem !important; /* Número grande para ver bien el pago */
     text-align: center;
@@ -526,6 +533,7 @@ body, html {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
 }
 
 .num-btn:active { background: #eee; }
@@ -544,6 +552,7 @@ body, html {
     border-radius: 6px;
     border: 1px solid #ddd;
     background: white;
+    cursor: pointer;
 }
 
 /* Ajuste para que el modal no sea muy estrecho */
@@ -551,9 +560,26 @@ body, html {
     max-width: 800px !important; 
     width: 95%;
 }
-        
-/* Ajuste para que en celulares no se vea amontonado */
+
+/* 📱 AJUSTES RESPONSIVOS PARA CELULARES */
 @media (max-width: 600px) {
+    .pago-layout-horizontal {
+        grid-template-columns: 1fr; /* Pasa a 1 columna vertical */
+        gap: 15px;
+    }
+
+    .teclado-numerico-derecha {
+        width: 100%;
+        box-sizing: border-box;
+        gap: 6px;
+        padding: 8px;
+    }
+
+    .num-btn {
+        height: 48px; /* Reduce la altura para que no ocupe toda la pantalla */
+        font-size: 1.2rem; /* Reduce ligeramente la tipografía */
+    }
+
     .seccion-teclado-pago {
         grid-template-columns: 1fr;
     }

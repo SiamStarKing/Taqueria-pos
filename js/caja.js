@@ -170,10 +170,8 @@ function actualizarVistaCarrito() {
 }
 
 window.limpiarCarrito = function() {
-    if(confirm("¿Vaciar la orden actual?")) {
-        carrito = [];
-        actualizarVistaCarrito();
-    }
+    carrito = [];
+    actualizarVistaCarrito();
 }
 
 // 4. GUARDAR LA VENTA EN LA NUBE
