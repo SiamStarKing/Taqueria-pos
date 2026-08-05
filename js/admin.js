@@ -97,42 +97,121 @@ onSnapshot(ventasRef, (snapshot) => {
 
 function renderizarVentas(ventas) {
     const tablaVentas = document.getElementById('cuerpo-ventas');
-    let ingresosTotales = 0;
-    let conteoProductos = {};
+    const resumenGrid = document.getElementById('resumen-dias-grid');
 
-    ventas.forEach(v => {
-        ingresosTotales += v.total;
-        const partes = v.detalle.split(', ');
-        partes.forEach(p => {
-            const match = p.match(/(\d+)x (.+)/);
-            if (match) {
-                const cant = parseInt(match[1]);
-                const nombre = match[2];
-                conteoProductos[nombre] = (conteoProductos[nombre] || 0) + cant;
+    // 1. Agrupar las ventas por fecha
+    const ventasPorDia = ventas.reduce((grupos, venta) => {
+        const fechaSolo = venta.fecha.split(',')[0].trim();
+        if (!grupos[fechaSolo]) {
+            grupos[fechaSolo] = [];
+        }
+        grupos[fechaSolo].push(venta);
+        return grupos;
+    }, {});
+
+    // 2. Calcular número de día en orden cronológico (Día 1 = fecha más antigua)
+    const diasAsc = Object.keys(ventasPorDia).sort((a, b) => new Date(a) - new Date(b));
+    const numeroDeDia = {};
+    diasAsc.forEach((fecha, index) => {
+        numeroDeDia[fecha] = index + 1;
+    });
+
+    // 3. GENERAR RESUMEN DE VENTAS (Ascendente: Día 1 -> Día 2 -> Día 3)
+    let htmlResumenTarjetas = '';
+    diasAsc.forEach((fecha) => {
+        const ventasDelDia = ventasPorDia[fecha];
+        const numDia = numeroDeDia[fecha];
+        
+        let totalDelDia = 0;
+        let conteoProductosDia = {};
+
+        ventasDelDia.forEach(v => {
+            totalDelDia += v.total;
+            
+            const partes = v.detalle.split(', ');
+            partes.forEach(p => {
+                const match = p.match(/(\d+)x (.+)/);
+                if (match) {
+                    const cant = parseInt(match[1]);
+                    const nombre = match[2];
+                    conteoProductosDia[nombre] = (conteoProductosDia[nombre] || 0) + cant;
+                }
+            });
+        });
+
+        let productoEstrellaDia = "-";
+        let maxVentasDia = 0;
+        for (const [nombre, cantidad] of Object.entries(conteoProductosDia)) {
+            if (cantidad > maxVentasDia) {
+                maxVentasDia = cantidad;
+                productoEstrellaDia = nombre;
             }
+        }
+
+        htmlResumenTarjetas += `
+            <div class="stat-card-dia">
+                <div class="stat-card-header">
+                    <span class="badge-dia">Día ${numDia}</span>
+                    <span class="fecha-texto">📅 ${fecha}</span>
+                </div>
+                <div class="stat-card-metric">
+                    <span class="label">Total Vendido:</span>
+                    <span class="valor-dinero">$${totalDelDia.toFixed(2)}</span>
+                </div>
+                <div class="stat-card-metric">
+                    <span class="label">Producto Estrella:</span>
+                    <span class="valor-estrella">⭐ ${productoEstrellaDia}</span>
+                </div>
+                <div class="stat-card-metric">
+                    <span class="label">Ventas Realizadas:</span>
+                    <span class="valor-conteo">${ventasDelDia.length}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    // 4. GENERAR TABLA HISTORIAL (Descendente: Lo más reciente primero)
+    const diasDesc = Object.keys(ventasPorDia).sort((a, b) => new Date(b) - new Date(a));
+    let htmlTabla = '';
+
+    diasDesc.forEach((fecha) => {
+        const ventasDelDia = ventasPorDia[fecha];
+        const numDia = numeroDeDia[fecha]; // Mantiene su etiqueta correcta (ej. Día 2)
+        const totalDelDia = ventasDelDia.reduce((sum, v) => sum + v.total, 0);
+
+        htmlTabla += `
+            <tr class="fila-separador-dia">
+                <td class="separador-info-fecha">
+                    <span class="separador-badge">Día ${numDia}</span>
+                    <span class="separador-fecha">📅 ${fecha}</span>
+                </td>
+                <td class="separador-info-productos">
+                    <span class="separador-conteo">${ventasDelDia.length} ${ventasDelDia.length === 1 ? 'venta' : 'ventas'}</span>
+                </td>
+                <td class="separador-total">
+                    Total: $${totalDelDia.toFixed(2)}
+                </td>
+            </tr>
+        `;
+
+        // Ordenar las ventas de ese día de la más reciente a la más antigua
+        const ventasOrdenadas = ventasDelDia.sort((a, b) => (b.fechaNum || 0) - (a.fechaNum || 0));
+        ventasOrdenadas.forEach(v => {
+            htmlTabla += `
+                <tr>
+                    <td style="padding-left: 20px;">${v.fecha}</td>
+                    <td>${v.detalle}</td>
+                    <td>$${v.total.toFixed(2)}</td>
+                </tr>
+            `;
         });
     });
 
-    let productoEstrella = "-";
-    let maxVentas = 0;
-    for (const [nombre, cantidad] of Object.entries(conteoProductos)) {
-        if (cantidad > maxVentas) {
-            maxVentas = cantidad;
-            productoEstrella = nombre;
-        }
+    // Renderizar los resultados
+    if (resumenGrid) {
+        resumenGrid.innerHTML = htmlResumenTarjetas || '<p style="color:#666;">No hay ventas registradas.</p>';
     }
-
-    document.getElementById('total-dinero').innerText = `$${ingresosTotales.toFixed(2)}`;
-    document.getElementById('cantidad-ventas').innerText = ventas.length;
-    document.getElementById('producto-estrella').innerText = productoEstrella;
-
-    tablaVentas.innerHTML = ventas.sort((a,b) => b.fechaNum - a.fechaNum).map(v => `
-        <tr>
-            <td>${v.fecha}</td>
-            <td>${v.detalle}</td>
-            <td>$${v.total.toFixed(2)}</td>
-        </tr>
-    `).join('');
+    tablaVentas.innerHTML = htmlTabla || '<tr><td colspan="3">No hay ventas registradas</td></tr>';
 }
 
 // --- FUNCIONES DE APOYO ---

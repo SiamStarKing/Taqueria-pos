@@ -134,7 +134,7 @@
 
 .admin-table th,
 .admin-table td {
-    padding: 12px;
+    padding: 10px;
     text-align: left;
     border-bottom: 1px solid #eee;
 }
@@ -242,4 +242,169 @@
     .btn-regresar {
         width: auto; /* El botón solo ocupa lo que necesita su texto */
     }
+}
+
+/* Fila contenedora de cada día */
+.fila-separador-dia {
+    background-color: #f8fafc; /* Fondo gris muy suave para diferenciar */
+    border-top: 2px solid #e2e8f0; /* Línea divisoria superior */
+    border-bottom: 1px solid #e2e8f0; /* Línea divisoria inferior */
+}
+
+/* Estilos comunes para todas las celdas del separador */
+.fila-separador-dia td {
+    padding: 12px 16px !important; /* Espaciado interno para dar aire */
+    vertical-align: middle; /* Centrar contenido verticalmente */
+    font-weight: 600; /* Texto seminegrita para destacar */
+}
+
+/* --- Celda 1: Sección de Fecha (Alineada a la columna Fecha) --- */
+.separador-info-fecha {
+    display: flex; /* Flexbox SOLO dentro de esta celda para alinear badge y fecha */
+    align-items: center;
+    gap: 10px; /* Espacio entre badge y fecha */
+    color: #1e293b;
+}
+
+/* Badge (Etiqueta "Día X") */
+.separador-badge {
+    background-color: var(--verde); /* Color azul moderno */
+    color: #ffffff;
+    padding: 4px 12px; /* Un poco más de padding para que se vea mejor */
+    border-radius: 16px; /* Bordes más redondeados */
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap; /* Evita que el texto se rompa en varias líneas */
+}
+
+/* Texto de la fecha */
+.separador-fecha {
+    font-size: 0.95rem;
+    color: #334155;
+    white-space: nowrap;
+}
+
+/* --- Celda 2: Sección de Productos (Alineada a la columna Productos) --- */
+.separador-info-productos {
+    text-align: left; /* Alineado a la izquierda para coincidir con productos */
+}
+
+/* Conteo de ventas en gris suave */
+.separador-conteo {
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 400; /* Peso de fuente normal para el conteo */
+}
+
+/* --- Celda 3: Sección de Total (Alineada a la columna Total) --- */
+.separador-total {
+    font-size: 1rem;
+    color: #059669; /* Verde destacado para el total */
+}
+
+
+/* Tarjeta individual de resumen diario */
+.stat-card-dia {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* Encabezado de la tarjeta (Badges de Día y Fecha) */
+.stat-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+}
+
+.badge-dia {
+    background-color: var(--verde);;
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 10px 50px;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+
+.fecha-texto {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* Filas de métricas dentro de la tarjeta */
+.stat-card-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.stat-card-metric .label {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.valor-dinero {
+    color: #059669;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.valor-estrella {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.valor-conteo {
+    color: #3b82f6;
+    font-weight: 700;
+}
+
+@media (max-width: 480px) {
+    .badge-dia {
+        font-size: 0.8rem;
+        font-weight: 700;
+        padding: 10px 50px;
+    }
+}
+
+/* Este código SOLO afecta al resumen por días */
+#resumen-dias-grid {
+    display: flex; /* Mantiene las tarjetas en una sola fila */
+    gap: 16px;
+    overflow-x: auto; /* Activa el scroll horizontal */
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Aplica el ancho fijo únicamente a las tarjetas del resumen por día */
+#resumen-dias-grid .stat-card-dia {
+    flex: 0 0 260px;
+    scroll-snap-align: start;
+}
+
+/* Personalización de la barra de scroll solo para este contenedor */
+#resumen-dias-grid::-webkit-scrollbar {
+    height: 6px;
+}
+
+#resumen-dias-grid::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+}
+
+#resumen-dias-grid::-webkit-scrollbar-track {
+    background-color: #f1f5f9;        
 }

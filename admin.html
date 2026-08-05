@@ -17,6 +17,35 @@
         </header>
 
         <main class="admin-main">
+
+            <section class="admin-card stats-section">
+                <h2>Resumen de Ventas</h2>
+                <!-- Contenedor dinámico para las tarjetas diarias -->
+                <div class="stats-grid" id="resumen-dias-grid">
+                    <!-- JavaScript insertará aquí las tarjetas de cada día -->
+                </div>
+            </section>
+
+            <section class="admin-card">
+                <h2>Corte de Caja</h2>
+                <div class="acciones-corte">
+                    <button class="btn-descargar" onclick="descargarExcel()">📊 Descargar Reporte Excel</button>
+                    <button class="btn-limpiar-ventas" onclick="borrarHistorialVentas()">🗑️ Borrar Historial de Ventas</button>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha/Horas</th>
+                                <th>Productos</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpo-ventas"></tbody>
+                    </table>
+                </div>
+            </section>
+
             <section class="admin-card form-section">
                 <h2>Agregar Nuevo Producto</h2>
                 <form id="form-producto" type="submit" class="grid-form">
@@ -59,44 +88,6 @@
                             </tr>
                         </thead>
                         <tbody id="cuerpo-tabla"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section class="admin-card stats-section">
-                <h2>Resumen de Ventas</h2>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-label">Total Vendido</span>
-                        <span class="stat-value" id="total-dinero">$0.00</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Producto Estrella</span>
-                        <span class="stat-value" id="producto-estrella">-</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Ventas Realizadas</span>
-                        <span class="stat-value" id="cantidad-ventas">0</span>
-                    </div>
-                </div>
-            </section>
-
-            <section class="admin-card">
-                <h2>Corte de Caja</h2>
-                <div class="acciones-corte">
-                    <button class="btn-descargar" onclick="descargarExcel()">📊 Descargar Reporte Excel</button>
-                    <button class="btn-limpiar-ventas" onclick="borrarHistorialVentas()">🗑️ Borrar Historial de Ventas</button>
-                </div>
-                <div class="table-container">
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Fecha/Horas</th>
-                                <th>Productos</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cuerpo-ventas"></tbody>
                     </table>
                 </div>
             </section>
