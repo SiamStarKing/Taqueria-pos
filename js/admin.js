@@ -1,4 +1,4 @@
-// 1. IMPORTAMOS LAS FUNCIONES DE FIREBASE (Asegúrate que db.js esté configurado)
+// 1. IMPORTACIONES DE FIREBASE
 import { 
     db, 
     productosRef, 
@@ -9,29 +9,30 @@ import {
     deleteDoc, 
     updateDoc, 
     writeBatch, 
-    getDocs,
+    getDocs 
 } from './db.js';
 
 // Variables globales
 const formulario = document.getElementById('form-producto');
 const tablaCuerpo = document.getElementById('cuerpo-tabla');
 
-// --- SECCIÓN DE PRODUCTOS (FIREBASE) ---
+// --- SECCIÓN DE PRODUCTOS ---
 
-// Escuchar productos en tiempo real (Sustituye al antiguo listarProductos)
+// Escuchar productos en tiempo real
 onSnapshot(productosRef, (snapshot) => {
     const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     renderizarTablaProductos(productos);
 });
 
 function renderizarTablaProductos(productos) {
+    if (!tablaCuerpo) return;
+
     tablaCuerpo.innerHTML = productos.map(p => {
         const esImagen = p.imagen.includes('/') || p.imagen.includes('.');
         const miniatura = esImagen 
             ? `<img src="${p.imagen}" width="40" height="40" style="object-fit:cover; border-radius:4px;">` 
             : `<span style="font-size: 24px;">${p.imagen}</span>`;
 
-        // Nota: El ID de Firebase es una cadena de texto (ej. "Jsk82Lskw")
         return `
             <tr>
                 <td>${miniatura}</td>
@@ -48,26 +49,24 @@ function renderizarTablaProductos(productos) {
         `;
     }).join('');
 
-    // Asignar eventos a los botones generados
     asignarEventosBotones();
 }
 
-// Función para guardar o actualizar
 async function manejarEnvioFormulario(e) {
     e.preventDefault();
     
     const nombre = document.getElementById('nombre').value;
     const precio = parseFloat(document.getElementById('precio').value);
-    const imagen = document.getElementById('imagen').value.trim(); // Lee el texto o emoji
+    const imagen = document.getElementById('imagen').value.trim();
     const categoria = document.getElementById('categoria').value;
     const editId = formulario.dataset.editId;
 
-    if (!nombre || isNaN(precio)) return alert("Revisa los datos");
+    if (!nombre || isNaN(precio)) return alert("Revisa los datos ingresados");
 
     const datosProducto = { 
         nombre, 
         precio, 
-        imagen: imagen || "🌮", // Si dejas vacío, pone el taco
+        imagen: imagen || "🌮", 
         categoria 
     };
 
@@ -88,18 +87,47 @@ async function manejarEnvioFormulario(e) {
     }
 }
 
-// --- SECCIÓN DE VENTAS (FIREBASE) ---
+if (formulario) {
+    formulario.addEventListener('submit', manejarEnvioFormulario);
+}
 
+function asignarEventosBotones() {
+    document.querySelectorAll('.btn-eliminar').forEach(btn => {
+        btn.onclick = async () => {
+            if (confirm("¿Eliminar producto?")) {
+                await deleteDoc(doc(db, "productos", btn.dataset.id));
+            }
+        };
+    });
+
+    document.querySelectorAll('.btn-editar').forEach(btn => {
+        btn.onclick = () => {
+            document.getElementById('nombre').value = btn.dataset.nombre;
+            document.getElementById('precio').value = btn.dataset.precio;
+            document.getElementById('categoria').value = btn.dataset.categoria;
+            document.getElementById('imagen').value = btn.dataset.imagen;
+
+            formulario.dataset.editId = btn.dataset.id;
+            document.querySelector('.btn-guardar').innerText = "Actualizar Producto";
+            window.scrollTo(0, 0);
+        };
+    });
+}
+
+// --- SECCIÓN DE VENTAS Y CORTE DE CAJA ---
+
+// Listener único para ventas en tiempo real
 onSnapshot(ventasRef, (snapshot) => {
     const ventas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     renderizarVentas(ventas);
+    calcularTotalesCaja(ventas);
 });
 
 function renderizarVentas(ventas) {
     const tablaVentas = document.getElementById('cuerpo-ventas');
     const resumenGrid = document.getElementById('resumen-dias-grid');
 
-    // 1. Agrupar las ventas por fecha
+    // 1. Agrupar las ventas por fecha (DD/MM/YYYY)
     const ventasPorDia = ventas.reduce((grupos, venta) => {
         const fechaSolo = venta.fecha.split(',')[0].trim();
         if (!grupos[fechaSolo]) {
@@ -109,24 +137,31 @@ function renderizarVentas(ventas) {
         return grupos;
     }, {});
 
-    // 2. Calcular número de día en orden cronológico (Día 1 = fecha más antigua)
+    // 2. Orden cronológico para numerar los días
     const diasAsc = Object.keys(ventasPorDia).sort((a, b) => new Date(a) - new Date(b));
     const numeroDeDia = {};
     diasAsc.forEach((fecha, index) => {
         numeroDeDia[fecha] = index + 1;
     });
 
-    // 3. GENERAR RESUMEN DE VENTAS (Ascendente: Día 1 -> Día 2 -> Día 3)
+    // 3. TARJETAS DE RESUMEN DIARIO
     let htmlResumenTarjetas = '';
     diasAsc.forEach((fecha) => {
         const ventasDelDia = ventasPorDia[fecha];
         const numDia = numeroDeDia[fecha];
         
         let totalDelDia = 0;
+        let totalEfectivoDia = 0;
+        let totalTransfDia = 0;
         let conteoProductosDia = {};
 
         ventasDelDia.forEach(v => {
             totalDelDia += v.total;
+            if (v.metodoPago === 'transferencia') {
+                totalTransfDia += v.total;
+            } else {
+                totalEfectivoDia += v.total;
+            }
             
             const partes = v.detalle.split(', ');
             partes.forEach(p => {
@@ -158,6 +193,9 @@ function renderizarVentas(ventas) {
                     <span class="label">Total Vendido:</span>
                     <span class="valor-dinero">$${totalDelDia.toFixed(2)}</span>
                 </div>
+                <div class="stat-card-metric" style="font-size: 0.85rem; color: #555;">
+                    💵 Efec: <strong>$${totalEfectivoDia.toFixed(2)}</strong> | 🏦 Trans: <strong>$${totalTransfDia.toFixed(2)}</strong>
+                </div>
                 <div class="stat-card-metric">
                     <span class="label">Producto Estrella:</span>
                     <span class="valor-estrella">⭐ ${productoEstrellaDia}</span>
@@ -170,15 +208,16 @@ function renderizarVentas(ventas) {
         `;
     });
 
-    // 4. GENERAR TABLA HISTORIAL (Descendente: Lo más reciente primero)
+   // 4. TABLA DE HISTORIAL (Descendente: lo más reciente primero)
     const diasDesc = Object.keys(ventasPorDia).sort((a, b) => new Date(b) - new Date(a));
     let htmlTabla = '';
 
     diasDesc.forEach((fecha) => {
         const ventasDelDia = ventasPorDia[fecha];
-        const numDia = numeroDeDia[fecha]; // Mantiene su etiqueta correcta (ej. Día 2)
+        const numDia = numeroDeDia[fecha];
         const totalDelDia = ventasDelDia.reduce((sum, v) => sum + v.total, 0);
 
+        // Fila separadora con 4 celdas explícitas para alinear perfectamente con cada columna
         htmlTabla += `
             <tr class="fila-separador-dia">
                 <td class="separador-info-fecha">
@@ -188,60 +227,55 @@ function renderizarVentas(ventas) {
                 <td class="separador-info-productos">
                     <span class="separador-conteo">${ventasDelDia.length} ${ventasDelDia.length === 1 ? 'venta' : 'ventas'}</span>
                 </td>
-                <td class="separador-total">
-                    Total: $${totalDelDia.toFixed(2)}
-                </td>
+                <td></td>
+                <td class="separador-total">$${totalDelDia.toFixed(2)}</td>
             </tr>
         `;
 
-        // Ordenar las ventas de ese día de la más reciente a la más antigua
         const ventasOrdenadas = ventasDelDia.sort((a, b) => (b.fechaNum || 0) - (a.fechaNum || 0));
         ventasOrdenadas.forEach(v => {
+            const esTransferencia = v.metodoPago === 'transferencia';
+            const claseBadge = esTransferencia ? 'badge-transferencia' : 'badge-efectivo';
+            const textoBadge = esTransferencia ? '🏦 Transferencia' : '💵 Efectivo';
+
             htmlTabla += `
                 <tr>
-                    <td style="padding-left: 20px;">${v.fecha}</td>
+                    <td>${v.fecha}</td>
                     <td>${v.detalle}</td>
-                    <td>$${v.total.toFixed(2)}</td>
+                    <td><span class="badge-metodo ${claseBadge}">${textoBadge}</span></td>
+                    <td><strong>$${v.total.toFixed(2)}</strong></td>
                 </tr>
             `;
         });
     });
 
-    // Renderizar los resultados
     if (resumenGrid) {
         resumenGrid.innerHTML = htmlResumenTarjetas || '<p style="color:#666;">No hay ventas registradas.</p>';
     }
-    tablaVentas.innerHTML = htmlTabla || '<tr><td colspan="3">No hay ventas registradas</td></tr>';
+    if (tablaVentas) {
+        tablaVentas.innerHTML = htmlTabla || '<tr><td colspan="4">No hay ventas registradas</td></tr>';
+    }
 }
 
-// --- FUNCIONES DE APOYO ---
+function calcularTotalesCaja(ventas) {
+    const totalEfectivo = ventas
+        .filter(v => v.metodoPago !== 'transferencia')
+        .reduce((sum, v) => sum + v.total, 0);
 
-function asignarEventosBotones() {
-    // Evento Eliminar (Se queda igual)
-    document.querySelectorAll('.btn-eliminar').forEach(btn => {
-        btn.onclick = async () => {
-            if (confirm("¿Eliminar producto?")) {
-                await deleteDoc(doc(db, "productos", btn.dataset.id));
-            }
-        };
-    });
+    const totalTransferencia = ventas
+        .filter(v => v.metodoPago === 'transferencia')
+        .reduce((sum, v) => sum + v.total, 0);
 
-    // Evento Editar (Corregido para no dar error de NULL)
-    document.querySelectorAll('.btn-editar').forEach(btn => {
-        btn.onclick = () => {
-            document.getElementById('nombre').value = btn.dataset.nombre;
-            document.getElementById('precio').value = btn.dataset.precio;
-            document.getElementById('categoria').value = btn.dataset.categoria;
-            document.getElementById('imagen').value = btn.dataset.imagen; // Rellena la URL/Emoji
+    const elEfectivo = document.getElementById('caja-efectivo');
+    const elTransferencia = document.getElementById('caja-transferencia');
+    const elTotal = document.getElementById('caja-total');
 
-            formulario.dataset.editId = btn.dataset.id;
-            document.querySelector('.btn-guardar').innerText = "Actualizar Producto";
-            window.scrollTo(0, 0);
-        };
-    });
+    if (elEfectivo) elEfectivo.innerText = `$${totalEfectivo.toFixed(2)}`;
+    if (elTransferencia) elTransferencia.innerText = `$${totalTransferencia.toFixed(2)}`;
+    if (elTotal) elTotal.innerText = `$${(totalEfectivo + totalTransferencia).toFixed(2)}`;
 }
 
-// --- BOTONES DE CORTE DE CAJA ---
+// --- ACCIONES EXCEL Y BORRADO ---
 
 window.descargarExcel = async function() {
     try {
@@ -250,36 +284,35 @@ window.descargarExcel = async function() {
 
         if (ventas.length === 0) return alert("No hay ventas registradas.");
 
-        let csvContent = "\ufeffFecha,Detalle,Total\n";
+        let csvContent = "\ufeffFecha,Detalle,Método de Pago,Total\n";
         ventas.forEach(v => {
             const detalleLimpio = v.detalle.replace(/,/g, " -"); 
-            csvContent += `${v.fecha},${detalleLimpio},${v.total}\n`;
+            const metodo = v.metodoPago === 'transferencia' ? 'Transferencia' : 'Efectivo';
+            csvContent += `${v.fecha},${detalleLimpio},${metodo},${v.total}\n`;
         });
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `Ventas_Pachuca_${new Date().toLocaleDateString()}.csv`;
+        link.download = `Ventas_Reporte_${new Date().toLocaleDateString().replace(/\//g, '-')}.csv`;
         link.click();
     } catch (e) {
         console.error(e);
-        alert("Error al generar Excel");
+        alert("Error al generar el reporte Excel.");
     }
 };
 
 window.borrarHistorialVentas = async function() {
-    if (!confirm("¿Borrar todas las ventas?")) return;
+    if (!confirm("¿Borrar todo el historial de ventas? Esta acción no se puede deshacer.")) return;
     try {
         const querySnapshot = await getDocs(ventasRef);
         const batch = writeBatch(db);
         querySnapshot.forEach(d => batch.delete(d.ref));
         await batch.commit();
-        alert("Historial limpio");
+        alert("Historial borrado correctamente.");
     } catch (e) {
         console.error(e);
-        alert("Error al borrar");
+        alert("Error al borrar el historial.");
     }
 };
-// Configurar el formulario
-formulario.addEventListener('submit', manejarEnvioFormulario);

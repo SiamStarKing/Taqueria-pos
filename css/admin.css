@@ -408,3 +408,16 @@
 #resumen-dias-grid::-webkit-scrollbar-track {
     background-color: #f1f5f9;        
 }
+
+/* Forzar la misma alineación y sangría en todas las celdas de la columna Total */
+.admin-table td:nth-child(4) {
+    text-align: left;
+    padding-left: 16px;
+}
+
+/* Mantener el color verde del total del día sin alterar el margen */
+.separador-total {
+    color: #00a884;
+    font-weight: bold;
+    margin: 0;
+}

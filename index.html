@@ -53,6 +53,17 @@
         <div class="modal-content">
             <h2>Finalizar Venta</h2>
             <div class="modal-body">
+                
+                <!-- SELECCIÓN DE MÉTODO DE PAGO -->
+                <div class="metodo-pago-selector" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button type="button" class="btn-metodo active" id="btn-efectivo" onclick="seleccionarMetodoPago('efectivo')">
+                        💵 Efectivo
+                    </button>
+                    <button type="button" class="btn-metodo" id="btn-transferencia" onclick="seleccionarMetodoPago('transferencia')">
+                        🏦 Transferencia
+                    </button>
+                </div>
+
                 <div class="pago-layout-horizontal">
                     
                     <!-- COLUMNA IZQUIERDA: Info y totales -->
@@ -67,7 +78,7 @@
                             <input type="number" id="monto-recibido" placeholder="0.00" readonly>
                         </div>
 
-                        <div class="botones-rapidos-grid">
+                        <div class="botones-rapidos-grid" id="contenedor-botones-rapidos">
                             <button onclick="fijarMonto(50)">$50</button>
                             <button onclick="fijarMonto(100)">$100</button>
                             <button onclick="fijarMonto(200)">$200</button>
@@ -81,7 +92,7 @@
                     </div>
 
                     <!-- COLUMNA DERECHA: Teclado numérico -->
-                    <div class="teclado-numerico-derecha">
+                    <div class="teclado-numerico-derecha" id="contenedor-teclado">
                         <button class="num-btn" onclick="agregarNumero(1)">1</button>
                         <button class="num-btn" onclick="agregarNumero(2)">2</button>
                         <button class="num-btn" onclick="agregarNumero(3)">3</button>
