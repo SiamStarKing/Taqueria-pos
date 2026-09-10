@@ -18,6 +18,28 @@ const tablaCuerpo = document.getElementById('cuerpo-tabla');
 
 // --- SECCIÓN DE PRODUCTOS ---
 
+let diaActual = parseInt(localStorage.getItem('jornada_actual')) || 1;
+
+// Actualiza el indicador visual en pantalla al cargar
+document.addEventListener('DOMContentLoaded', () => {
+    actualizarBadgeDia();
+});
+
+function actualizarBadgeDia() {
+    const badge = document.getElementById('dia-actual-badge');
+    if (badge) badge.innerText = `Día ${diaActual}`;
+}
+
+// Función global para el botón de la interfaz
+window.avanzarDia = function() {
+    if (confirm(`¿Deseas cerrar el Día ${diaActual} e iniciar el Día ${diaActual + 1}?`)) {
+        diaActual++;
+        localStorage.setItem('jornada_actual', diaActual);
+        actualizarBadgeDia();
+        alert(`¡Ahora estás registrando ventas en el Día ${diaActual}!`);
+    }
+};
+
 // Escuchar productos en tiempo real
 onSnapshot(productosRef, (snapshot) => {
     const productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -127,42 +149,29 @@ function renderizarVentas(ventas) {
     const tablaVentas = document.getElementById('cuerpo-ventas');
     const resumenGrid = document.getElementById('resumen-dias-grid');
 
-    // 1. Agrupar las ventas por fecha (DD/MM/YYYY)
+    // 1. Agrupar las ventas por diaNumero
     const ventasPorDia = ventas.reduce((grupos, venta) => {
-        const fechaSolo = venta.fecha.split(',')[0].trim();
-        if (!grupos[fechaSolo]) {
-            grupos[fechaSolo] = [];
+        // Si es una venta antigua sin diaNumero, asigna 1 por defecto
+        const numDia = venta.diaNumero || 1; 
+        if (!grupos[numDia]) {
+            grupos[numDia] = [];
         }
-        grupos[fechaSolo].push(venta);
+        grupos[numDia].push(venta);
         return grupos;
     }, {});
 
-    // 2. Orden cronológico para numerar los días
-    const diasAsc = Object.keys(ventasPorDia).sort((a, b) => new Date(a) - new Date(b));
-    const numeroDeDia = {};
-    diasAsc.forEach((fecha, index) => {
-        numeroDeDia[fecha] = index + 1;
-    });
+    // Ordenar los días numéricamente (1, 2, 3...)
+    const diasAsc = Object.keys(ventasPorDia).sort((a, b) => Number(a) - Number(b));
 
-    // 3. TARJETAS DE RESUMEN DIARIO
+    // 2. GENERAR RESUMEN POR DÍA (Día 1 -> Día 2 -> Día 3...)
     let htmlResumenTarjetas = '';
-    diasAsc.forEach((fecha) => {
-        const ventasDelDia = ventasPorDia[fecha];
-        const numDia = numeroDeDia[fecha];
-        
+    diasAsc.forEach((numDia) => {
+        const ventasDelDia = ventasPorDia[numDia];
         let totalDelDia = 0;
-        let totalEfectivoDia = 0;
-        let totalTransfDia = 0;
         let conteoProductosDia = {};
 
         ventasDelDia.forEach(v => {
             totalDelDia += v.total;
-            if (v.metodoPago === 'transferencia') {
-                totalTransfDia += v.total;
-            } else {
-                totalEfectivoDia += v.total;
-            }
-            
             const partes = v.detalle.split(', ');
             partes.forEach(p => {
                 const match = p.match(/(\d+)x (.+)/);
@@ -183,18 +192,17 @@ function renderizarVentas(ventas) {
             }
         }
 
+        const fechaMuestra = ventasDelDia[0]?.fecha.split(',')[0] || '';
+
         htmlResumenTarjetas += `
             <div class="stat-card-dia">
                 <div class="stat-card-header">
                     <span class="badge-dia">Día ${numDia}</span>
-                    <span class="fecha-texto">📅 ${fecha}</span>
+                    <span class="fecha-texto">📅 ${fechaMuestra}</span>
                 </div>
                 <div class="stat-card-metric">
                     <span class="label">Total Vendido:</span>
                     <span class="valor-dinero">$${totalDelDia.toFixed(2)}</span>
-                </div>
-                <div class="stat-card-metric" style="font-size: 0.85rem; color: #555;">
-                    💵 Efec: <strong>$${totalEfectivoDia.toFixed(2)}</strong> | 🏦 Trans: <strong>$${totalTransfDia.toFixed(2)}</strong>
                 </div>
                 <div class="stat-card-metric">
                     <span class="label">Producto Estrella:</span>
@@ -208,53 +216,44 @@ function renderizarVentas(ventas) {
         `;
     });
 
-   // 4. TABLA DE HISTORIAL (Descendente: lo más reciente primero)
-    const diasDesc = Object.keys(ventasPorDia).sort((a, b) => new Date(b) - new Date(a));
+    // 3. GENERAR TABLA DE HISTORIAL (Día más reciente arriba)
+    const diasDesc = Object.keys(ventasPorDia).sort((a, b) => Number(b) - Number(a));
     let htmlTabla = '';
 
-    diasDesc.forEach((fecha) => {
-        const ventasDelDia = ventasPorDia[fecha];
-        const numDia = numeroDeDia[fecha];
+    diasDesc.forEach((numDia) => {
+        const ventasDelDia = ventasPorDia[numDia];
         const totalDelDia = ventasDelDia.reduce((sum, v) => sum + v.total, 0);
+        const fechaMuestra = ventasDelDia[0]?.fecha.split(',')[0] || '';
 
-        // Fila separadora con 4 celdas explícitas para alinear perfectamente con cada columna
         htmlTabla += `
             <tr class="fila-separador-dia">
                 <td class="separador-info-fecha">
                     <span class="separador-badge">Día ${numDia}</span>
-                    <span class="separador-fecha">📅 ${fecha}</span>
+                    <span class="separador-fecha">📅 ${fechaMuestra}</span>
                 </td>
                 <td class="separador-info-productos">
                     <span class="separador-conteo">${ventasDelDia.length} ${ventasDelDia.length === 1 ? 'venta' : 'ventas'}</span>
                 </td>
-                <td></td>
-                <td class="separador-total">$${totalDelDia.toFixed(2)}</td>
+                <td class="separador-total">
+                    Total: $${totalDelDia.toFixed(2)}
+                </td>
             </tr>
         `;
 
         const ventasOrdenadas = ventasDelDia.sort((a, b) => (b.fechaNum || 0) - (a.fechaNum || 0));
         ventasOrdenadas.forEach(v => {
-            const esTransferencia = v.metodoPago === 'transferencia';
-            const claseBadge = esTransferencia ? 'badge-transferencia' : 'badge-efectivo';
-            const textoBadge = esTransferencia ? '🏦 Transferencia' : '💵 Efectivo';
-
             htmlTabla += `
                 <tr>
-                    <td>${v.fecha}</td>
+                    <td style="padding-left: 20px;">${v.fecha}</td>
                     <td>${v.detalle}</td>
-                    <td><span class="badge-metodo ${claseBadge}">${textoBadge}</span></td>
-                    <td><strong>$${v.total.toFixed(2)}</strong></td>
+                    <td>$${v.total.toFixed(2)}</td>
                 </tr>
             `;
         });
     });
 
-    if (resumenGrid) {
-        resumenGrid.innerHTML = htmlResumenTarjetas || '<p style="color:#666;">No hay ventas registradas.</p>';
-    }
-    if (tablaVentas) {
-        tablaVentas.innerHTML = htmlTabla || '<tr><td colspan="4">No hay ventas registradas</td></tr>';
-    }
+    if (resumenGrid) resumenGrid.innerHTML = htmlResumenTarjetas || '<p style="color:#666;">No hay ventas registradas.</p>';
+    tablaVentas.innerHTML = htmlTabla || '<tr><td colspan="3">No hay ventas registradas</td></tr>';
 }
 
 function calcularTotalesCaja(ventas) {
@@ -304,15 +303,22 @@ window.descargarExcel = async function() {
 };
 
 window.borrarHistorialVentas = async function() {
-    if (!confirm("¿Borrar todo el historial de ventas? Esta acción no se puede deshacer.")) return;
+    if (!confirm("¿Borrar todas las ventas?")) return;
     try {
         const querySnapshot = await getDocs(ventasRef);
         const batch = writeBatch(db);
         querySnapshot.forEach(d => batch.delete(d.ref));
         await batch.commit();
-        alert("Historial borrado correctamente.");
+
+        // Reiniciar el contador a Día 1
+        diaActual = 1;
+        localStorage.setItem('jornada_actual', 1);
+        const badge = document.getElementById('dia-actual-badge');
+        if (badge) badge.innerText = `Día 1`;
+
+        alert("Historial limpio y jornada reiniciada a Día 1");
     } catch (e) {
         console.error(e);
-        alert("Error al borrar el historial.");
+        alert("Error al borrar");
     }
 };

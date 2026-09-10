@@ -276,6 +276,8 @@ window.procesarVentaFinal = async function() {
     const cambio = metodoPagoActual === 'transferencia' ? 0 : (recibido - totalVentaGlobal);
     const detalle = carrito.map(item => `${item.cantidad}x ${item.nombre}`).join(', ');
 
+    const diaActual = parseInt(localStorage.getItem('jornada_actual')) || 1;
+
     const nuevaVenta = {
         fecha: new Date().toLocaleString(),
         fechaNum: Date.now(),
@@ -283,7 +285,8 @@ window.procesarVentaFinal = async function() {
         total: totalVentaGlobal,
         pagoCon: metodoPagoActual === 'transferencia' ? totalVentaGlobal : recibido,
         cambio: cambio,
-        metodoPago: metodoPagoActual // <-- REGISTRA 'efectivo' O 'transferencia'
+        metodoPago: metodoPagoActual, // <-- REGISTRA 'efectivo' O 'transferencia'
+        diaNumero: diaActual // 👇 2. LO AGREGAS AL OBJETO DE LA VENTA
     };
 
     const btnConfirmar = document.querySelector('.modal-footer .btn-cobrar');

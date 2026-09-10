@@ -18,7 +18,15 @@
 
         <main class="admin-main">
 
+            
+
             <section class="admin-card stats-section">
+                <div class="control-jornada" style="margin-bottom: 20px; display: flex; align-items: center; gap: 15px;">
+                    <h3>Jornada Actual: <span id="dia-actual-badge" style="color: #2a9d8f;">Día 1</span></h3>
+                    <button id="btn-nuevo-dia" onclick="avanzarDia()" class="btn-guardar" style="background-color: #1d3557;">
+                        ➕ Iniciar Nuevo Día
+                    </button>
+                </div>
                 <h2>Resumen de Ventas</h2>
                 <!-- Contenedor dinámico para las tarjetas diarias -->
                 <div class="stats-grid" id="resumen-dias-grid">
