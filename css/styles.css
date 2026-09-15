@@ -17,7 +17,6 @@ body, html {
     font-family: 'Segoe UI', sans-serif;
     background-color: var(--fondo);
     height: 100dvh; /* Usa la altura dinámica real */
-    overflow: hidden; /* Evita desplazamientos indeseados */
 }
 
 /* DISPLAY DEL MENU y TICKET*/

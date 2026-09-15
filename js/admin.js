@@ -9,7 +9,8 @@ import {
     deleteDoc, 
     updateDoc, 
     writeBatch, 
-    getDocs 
+    getDocs,
+    setDoc
 } from './db.js';
 
 // Variables globales
@@ -18,10 +19,19 @@ const tablaCuerpo = document.getElementById('cuerpo-tabla');
 
 // --- SECCIÓN DE PRODUCTOS ---
 
-let diaActual = parseInt(localStorage.getItem('jornada_actual')) || 1;
+// --- GESTIÓN DEL DÍA EN TIEMPO REAL CON FIREBASE ---
+let diaActual = 1;
+const configDiaRef = doc(db, "configuracion", "jornada");
 
-// Actualiza el indicador visual en pantalla al cargar
-document.addEventListener('DOMContentLoaded', () => {
+// Escuchar en tiempo real el día actual desde Firestore
+onSnapshot(configDiaRef, (docSnap) => {
+    if (docSnap.exists()) {
+        diaActual = docSnap.data().diaActual || 1;
+    } else {
+        // Si no existe el documento en la base de datos, lo crea con el Día 1
+        setDoc(configDiaRef, { diaActual: 1 });
+        diaActual = 1;
+    }
     actualizarBadgeDia();
 });
 
@@ -31,12 +41,17 @@ function actualizarBadgeDia() {
 }
 
 // Función global para el botón de la interfaz
-window.avanzarDia = function() {
+window.avanzarDia = async function() {
     if (confirm(`¿Deseas cerrar el Día ${diaActual} e iniciar el Día ${diaActual + 1}?`)) {
-        diaActual++;
-        localStorage.setItem('jornada_actual', diaActual);
-        actualizarBadgeDia();
-        alert(`¡Ahora estás registrando ventas en el Día ${diaActual}!`);
+        try {
+            const nuevoDia = diaActual + 1;
+            // Actualiza en la nube para que todos los dispositivos lo vean
+            await setDoc(configDiaRef, { diaActual: nuevoDia }, { merge: true });
+            alert(`¡Ahora estás registrando ventas en el Día ${nuevoDia}!`);
+        } catch (error) {
+            console.error("Error al avanzar de día:", error);
+            alert("Error al actualizar el día en la nube.");
+        }
     }
 };
 
@@ -168,11 +183,22 @@ function renderizarVentas(ventas) {
     diasAsc.forEach((numDia) => {
         const ventasDelDia = ventasPorDia[numDia];
         let totalDelDia = 0;
+        let efecDelDia = 0;
+        let transDelDia = 0;
         let conteoProductosDia = {};
 
         ventasDelDia.forEach(v => {
             totalDelDia += v.total;
-            const partes = v.detalle.split(', ');
+
+            // Suma por método de pago (Soporta ambos formatos de guardado)
+            if (v.metodoPago === 'transferencia' || (v.montoTransferencia && v.montoTransferencia > 0)) {
+                transDelDia += (v.montoTransferencia || v.total);
+            } else {
+                efecDelDia += (v.montoEfectivo || v.total);
+            }
+
+            // Conteo de productos para el producto estrella
+            const partes = v.detalle ? v.detalle.split(', ') : [];
             partes.forEach(p => {
                 const match = p.match(/(\d+)x (.+)/);
                 if (match) {
@@ -192,18 +218,24 @@ function renderizarVentas(ventas) {
             }
         }
 
-        const fechaMuestra = ventasDelDia[0]?.fecha.split(',')[0] || '';
+        const fechaMuestra = ventasDelDia[0]?.fecha ? ventasDelDia[0].fecha.split(',')[0] : '';
 
         htmlResumenTarjetas += `
             <div class="stat-card-dia">
                 <div class="stat-card-header">
-                    <span class="badge-dia">Día ${numDia}</span>
+                    <span class="badge-dia">DÍA ${numDia}</span>
                     <span class="fecha-texto">📅 ${fechaMuestra}</span>
                 </div>
                 <div class="stat-card-metric">
                     <span class="label">Total Vendido:</span>
                     <span class="valor-dinero">$${totalDelDia.toFixed(2)}</span>
                 </div>
+                
+                <!-- Fila agregada de Efectivo y Transferencia -->
+                <div class="stat-card-metric">
+                    💵 Efec: <strong>$${efecDelDia.toFixed(1)}</strong> | 🏛️ Trans: <strong>$${transDelDia.toFixed(1)}</strong>
+                </div>
+
                 <div class="stat-card-metric">
                     <span class="label">Producto Estrella:</span>
                     <span class="valor-estrella">⭐ ${productoEstrellaDia}</span>
@@ -223,7 +255,7 @@ function renderizarVentas(ventas) {
     diasDesc.forEach((numDia) => {
         const ventasDelDia = ventasPorDia[numDia];
         const totalDelDia = ventasDelDia.reduce((sum, v) => sum + v.total, 0);
-        const fechaMuestra = ventasDelDia[0]?.fecha.split(',')[0] || '';
+        const fechaMuestra = ventasDelDia[0]?.fecha ? ventasDelDia[0].fecha.split(',')[0] : '';
 
         htmlTabla += `
             <tr class="fila-separador-dia">
@@ -253,7 +285,7 @@ function renderizarVentas(ventas) {
     });
 
     if (resumenGrid) resumenGrid.innerHTML = htmlResumenTarjetas || '<p style="color:#666;">No hay ventas registradas.</p>';
-    tablaVentas.innerHTML = htmlTabla || '<tr><td colspan="3">No hay ventas registradas</td></tr>';
+    if (tablaVentas) tablaVentas.innerHTML = htmlTabla || '<tr><td colspan="3">No hay ventas registradas</td></tr>';
 }
 
 function calcularTotalesCaja(ventas) {
@@ -303,22 +335,21 @@ window.descargarExcel = async function() {
 };
 
 window.borrarHistorialVentas = async function() {
-    if (!confirm("¿Borrar todas las ventas?")) return;
+    if (!confirm("¿Borrar todas las ventas y reiniciar la jornada al Día 1?")) return;
     try {
         const querySnapshot = await getDocs(ventasRef);
         const batch = writeBatch(db);
+        
+        // 1. Borrar todas las ventas
         querySnapshot.forEach(d => batch.delete(d.ref));
         await batch.commit();
 
-        // Reiniciar el contador a Día 1
-        diaActual = 1;
-        localStorage.setItem('jornada_actual', 1);
-        const badge = document.getElementById('dia-actual-badge');
-        if (badge) badge.innerText = `Día 1`;
+        // 2. Reiniciar el contador a Día 1 en Firestore
+        await setDoc(configDiaRef, { diaActual: 1 }, { merge: true });
 
-        alert("Historial limpio y jornada reiniciada a Día 1");
+        alert("Historial limpio y jornada reiniciada a Día 1 en todos los dispositivos");
     } catch (e) {
-        console.error(e);
-        alert("Error al borrar");
+        console.error("Error al borrar historial:", e);
+        alert("Error al borrar el historial");
     }
 };
